@@ -9,7 +9,8 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 ### Features
 * 320x240 resolution
 * 64 colors
-* 5x7 pixel font tied to 8x8 boundries.  This allows for 40x30 characters on the screen.
+* 5x7 pixel font tied to 8x8 boundries.  This allows for 40x30 characters on the screen.  (original code)
+* Added PETSCII font with true 8x8 character drawing and each character can have their own 64 color background and foreground!
 * Simple buffer for drawing.  Just draw to the buffer and everything is blitted in real time.
 * 6-bit RGB color palette of R2G2B2.  This allows for 64 colors.
 * One byte per pixel (upper two bits are ignored).
