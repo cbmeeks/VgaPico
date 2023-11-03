@@ -41,6 +41,8 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 
 ![demo03.jpg](images%2Fdemo03.jpg)
 
+### Commodore PETSCII Font!!
+![demo04.jpg](images%2Fdemo04.jpg)
 
 ## Fonts
 Here is a good site to get different PETSCII fonts:
