@@ -43,6 +43,14 @@ volatile int currentScanLine = 0;       // current processed scan line
 unsigned char vga_data_array[TXCOUNT];
 volatile unsigned char *address_pointer_array = &vga_data_array[0];
 
+// The 40x30 character buffer
+#define TEXT_MODE_WIDTH 40
+#define TEXT_MODE_HEIGHT 30
+#define TEXT_MODE_COUNT (TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT)
+unsigned char text_buffer[TEXT_MODE_COUNT];
+
+// Text Mode cursor
+unsigned short cursor_x, cursor_y;
 
 // For drawLine
 #define swap(a, b) \
@@ -52,15 +60,16 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
     b = t; \
   }
 
+//////////////////////////////////////////////////////////////////////
+// For drawing characters (original...will be removed)
 // For writing text
 #define tabspace 4  // number of spaces for a tab
-
 // For accessing the font library
 #define pgm_read_byte(addr) (*(const unsigned char*)(addr))
-
-// For drawing characters
-unsigned short cursor_y, cursor_x, textsize;
+unsigned short textsize;
 char textcolor, textbgcolor, wrap;
+//////////////////////////////////////////////////////////////////////
+
 
 void initVGA() {
     // Set PIO program offset
@@ -144,7 +153,6 @@ void initDma(uint rgb_sm) {
     dma_start_channel_mask((1u << RGB_CHAN_0));
 }
 
-
 // DMA handler - called at the end of every scanline
 void dma_handler() {
 
@@ -173,7 +181,6 @@ void drawPixel(short x, short y, char color) {
         vga_data_array[pixel] = color;
     }
 }
-
 
 void clearScreen() {
     for (int i = 0; i < TXCOUNT; i++) {
@@ -393,7 +400,6 @@ void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, sho
     }
 }
 
-
 // fill a rectangle
 void fillRect(short x, short y, short w, short h, char color) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
@@ -416,6 +422,14 @@ void fillRect(short x, short y, short w, short h, char color) {
     }
 }
 
+/**
+ * Draw an 8x8 character using the PETSCII font to the screen at 40x30 characters
+ * @param colx Screen column X
+ * @param coly Screen column Y
+ * @param charidx Character index from PETSCII font buffer
+ * @param fgcolor Foreground color
+ * @param bgcolor Background color
+ */
 void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor) {
     for (int y = 0; y < 8; y++) {
         unsigned char line = petscii[charidx][y];
@@ -427,10 +441,75 @@ void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, u
         for (int x = 0; x < 8; x++) {
             drawPixel(scrx + x, scry + y, BitVal(line, (7 - x)) == 0x01 ? fgcolor : bgcolor);
         }
-
     }
 }
 
+/**
+ * Draws the entire text mode character buffer.
+  */
+void drawTextMode() {
+    int x = 0;
+    int y = 0;
+    for (int i = 0; i < TEXT_MODE_COUNT; i++) {
+        draw8x8Char(x, y, text_buffer[y * TEXT_MODE_HEIGHT + x], 0b11111111, 0b11000011);
+        x++;
+        if (x >= TEXT_MODE_WIDTH) {
+            x = 0;
+            y++;
+            if (y >= TEXT_MODE_HEIGHT) y = 0;
+        }
+    }
+}
+
+/**
+ * Draws a single PETSCII character (from PETSCII font buffer) to the screen buffer
+ * @param colx Screen column X
+ * @param coly Screen column Y
+ * @param charidx Character index from within font buffer
+ */
+void drawCharacter(short colx, short coly, short charidx) {
+    if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
+    if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
+    if (charidx < 0 || charidx >= 256) return;
+    text_buffer[coly * TEXT_MODE_HEIGHT + colx] = charidx;
+}
+
+void clearTextMode(short charidx) {
+    for (int i = 0; i < TEXT_MODE_COUNT; i++) {
+        text_buffer[i] = charidx;
+    }
+}
+
+void setTextCursor(short x, short y) {
+    cursor_x = x;
+    cursor_y = y;
+}
+
+void drawCharacterString(char *str) {
+    while (*str) {
+        _text_write(*str++);
+    }
+}
+
+void _text_write(unsigned char c) {
+    if (c == '\n') {
+
+    } else if (c == '\r') {
+
+    } else if (c == '\t') {
+
+    } else {
+        drawCharacter(cursor_x, cursor_y, c);
+        cursor_x++;
+        // TODO handle wrapping screen
+    }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// OLD, original code
+///////////////////////////////////////////////////////////////////////////////////////
 
 // Draw a character
 void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) {
@@ -467,18 +546,6 @@ void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned c
     }
 }
 
-
-void setTextCursor(short x, short y) {
-    /* Set cursor for text to be printed
-      Parameters:
-           x = x-coordinate of top-left of text starting
-           y = y-coordinate of top-left of text starting
-      Returns: Nothing
-    */
-    cursor_x = x;
-    cursor_y = y;
-}
-
 void setTextSize(unsigned char s) {
     /*Set size of text to be displayed
       Parameters:
@@ -502,7 +569,6 @@ void setFgBgTextColor(char fg, char bg) {
 void setTextWrap(char w) {
     wrap = w;
 }
-
 
 void tft_write(unsigned char c) {
     if (c == '\n') {

@@ -57,4 +57,10 @@ void setTextWrap(char w);
 void tft_write(unsigned char c) ;
 void writeString(char* str) ;
 
+// Font methods
+void clearTextMode(short charidx);
 void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor);
+void drawCharacter(short colx, short coly, short charidx);
+void drawTextMode();
+void drawCharacterString(char *str);
+void _text_write(unsigned char c);

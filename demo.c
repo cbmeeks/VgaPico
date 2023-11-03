@@ -20,9 +20,16 @@ int main() {
 
     fillRect(0, 0, 320, 240, 0b11000011);
 
-    drawChars();
+//    drawChars();
 
-    while (1) {}
+    clearTextMode(32);
+
+    setTextCursor(1, 2);
+    drawCharacterString("XX");
+
+    while (1) {
+        drawTextMode();
+    }
 
 }
 
