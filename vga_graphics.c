@@ -18,6 +18,7 @@
 // Library includes
 #include "vga_graphics.h"
 #include "bit_helper.h"
+#include "petscii/petscii.h"
 
 // VGA defines
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
@@ -415,21 +416,9 @@ void fillRect(short x, short y, short w, short h, char color) {
     }
 }
 
-void draw8x8Char(short colx, short coly, unsigned char fgcolor, unsigned char bgcolor) {
-
-    unsigned char bits[] = {
-            0b00010000,
-            0b00110000,
-            0b01110000,
-            0b11111111,
-            0b11111111,
-            0b01110000,
-            0b00110000,
-            0b00010000,
-    };
-
+void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor) {
     for (int y = 0; y < 8; y++) {
-        unsigned char line = bits[y];
+        unsigned char line = petscii[charidx][y];
 
         // get the starting x/y pixel location
         short scrx = colx * 8;

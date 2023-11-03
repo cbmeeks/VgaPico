@@ -57,4 +57,4 @@ void setTextWrap(char w);
 void tft_write(unsigned char c) ;
 void writeString(char* str) ;
 
-void draw8x8Char(short colx, short coly, unsigned char fgcolor, unsigned char bgcolor);
+void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor);

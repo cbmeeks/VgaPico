@@ -12,77 +12,27 @@
 #include "pico/stdlib.h"
 #include "vga_graphics.h"
 
-
-int Demo_00_main() {
-    initVGA();
-    clearScreen();
-
-    fillRect(0, 0, 320, 240, 0b11001011);
-    fillRect(16, 16, 320 - 32, 240 - 32, 0b11000011);
-
-    setTextColor(0b11001011);
-    setTextSize(1);
-    setTextCursor(4 * 8, 4 * 8);
-    writeString("**** COMMODORE 64 BASIC V2 ****");
-
-    while (1) {}
-}
+void drawChars();
 
 int main() {
     initVGA();
     clearScreen();
 
-    setTextSize(1);
-    setTextCursor(0, 0);
-    setFgBgTextColor(0b11111100, 0b11000100);
-    writeString("Hello World!");
+    fillRect(0, 0, 320, 240, 0b11000011);
 
-    draw8x8Char(0, 2, 0b11110000, 0b11110011);
-    draw8x8Char(1, 2, 0b11111100, 0b11110011);
+    drawChars();
 
     while (1) {}
 
 }
 
-// Rename to main() to run this demo.
-int Zmain() {
-    initVGA();
-    clearScreen();
-
-    int color = 0b00110000;
-
-    for (int y = 32; y < 239; y++) {
-        drawHLine(0, y, 319, color);
-        color++;
-        if (color > 63) color = 0;
+void drawChars() {
+    int c = 0;
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 40; x++) {
+            draw8x8Char(x, y, c, 0b11001111, 0b11000011);
+            c++;
+            if (c > 255) return;
+        }
     }
-
-    fillCircle(160, 240 / 2, 100, 0b00110011);
-    fillCircle(160, 240 / 2, 50, 0b00100001);
-    fillCircle(160, 240 / 2, 20, 0b00010010);
-    drawLine(0, 32, 319, 500, 0b11111111);
-
-    setTextColor(0b11111111);
-    setTextSize(1);
-    setTextCursor(0, 1);
-    writeString(" VgaPico-320x240 & 64 colors!  cbmeeks");
-    setTextCursor(0, 9);
-    writeString("123456789012345678901234567890123456789012345678901234567890");
-
-    setTextColor(0b11001100);
-    setTextCursor(1, 20);
-    setTextSize(2);
-    writeString("Large font support.");
-
-    setTextColor(0b11111100);
-    setTextCursor(1, 40);
-    setTextSize(4);
-    writeString("VIC-20?");
-
-    setTextColor(0b11101000);
-    setTextCursor(1, 80);
-    setTextSize(6);
-    writeString("Me big!");
-
-    while (1) {}
 }

@@ -39,3 +39,13 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 ![demo02.jpg](images%2Fdemo02.jpg)
 
 ![demo03.jpg](images%2Fdemo03.jpg)
+
+
+## Fonts
+Here is a good site to get different PETSCII fonts:
+http://www.6502.org/users/sjgray/computer/cbmchr/cbmchr.html
+
+Also, checkout the [petscii.py](petscii.py) file for a crud program to convert binary font data into a "petscii.h" include file.
+
+The main PETSCII file is called (chargen) and it can be found on the Web (also included in the petscii folder).
+

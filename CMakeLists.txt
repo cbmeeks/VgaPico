@@ -24,6 +24,7 @@ add_executable(${PROJECT_NAME}
         demo.c
         font.h
         bit_helper.h
+        petscii/petscii.h
 )
 
 # by default the header is generated into the build dir
