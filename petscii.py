@@ -33,6 +33,8 @@ class Petscii:
         with open("fonts/petscii/petscii.h", "w") as f:
             f.write("%s\n" % "#ifndef PETSCII_H")
             f.write("%s\n\n" % "#define PETSCII_H")
+            f.write("%s\n\n" % "// THIS FILE IS GENERATED WITH THE petscii.py PROGRAM!");
+            f.write("%s\n\n" % "// DO NOT HAND EDIT!");
             f.write("%s\n" % "static const unsigned char petscii[256][8] = {")
 
             for s in out:
