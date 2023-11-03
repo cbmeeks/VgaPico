@@ -31,3 +31,11 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 * RED = GPIO2 & GPIO3
 * GREEN = GPIO4 & GPIO5
 * BLUE = GPIO6 & GPIO7
+
+
+## Cool demos!
+![demo01.jpg](images%2Fdemo01.jpg)
+
+![demo02.jpg](images%2Fdemo02.jpg)
+
+![demo03.jpg](images%2Fdemo03.jpg)
