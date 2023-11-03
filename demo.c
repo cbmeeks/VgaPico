@@ -28,8 +28,24 @@ int Demo_00_main() {
     while (1) {}
 }
 
-// Rename to main() to run this demo.
 int main() {
+    initVGA();
+    clearScreen();
+
+    setTextSize(1);
+    setTextCursor(0, 0);
+    setFgBgTextColor(0b11111100, 0b11000100);
+    writeString("Hello World!");
+
+    draw8x8Char(0, 2, 0b11110000, 0b11110011);
+    draw8x8Char(1, 2, 0b11111100, 0b11110011);
+
+    while (1) {}
+
+}
+
+// Rename to main() to run this demo.
+int Zmain() {
     initVGA();
     clearScreen();
 

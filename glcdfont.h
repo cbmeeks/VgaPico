@@ -2,6 +2,11 @@
 #define FONT5X7_H
 
 // Standard ASCII 5x7 font
+// These fonts are VERTICALLY encoded to save space.
+// Instead of each byte representing a horizontal row of 8 pixels,
+// each byte represents a VERTICAL column of 8 pixels.
+// Also, the least significant bit represents the top of the column,
+// meaning they are encoded upside-down compared to most fonts.
 
 static const unsigned char font[] = {
         0x00, 0x00, 0x00, 0x00, 0x00,
@@ -36,7 +41,8 @@ static const unsigned char font[] = {
         0x0C, 0x1E, 0x0C, 0x1E, 0x0C,
         0x30, 0x38, 0x3E, 0x38, 0x30,
         0x06, 0x0E, 0x3E, 0x0E, 0x06,
-        0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00,       // SPACE
+//        0b11111111, 0b00000000, 0b10101010, 0b11000000, 0b00000011,     //  SPACE
         0x00, 0x00, 0x5F, 0x00, 0x00,
         0x00, 0x07, 0x00, 0x07, 0x00,
         0x14, 0x7F, 0x14, 0x7F, 0x14,

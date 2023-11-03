@@ -15,7 +15,9 @@
 #include "glcdfont.h"
 //#include "font.h"
 
+// Library includes
 #include "vga_graphics.h"
+#include "bit_helper.h"
 
 // VGA defines
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
@@ -390,42 +392,6 @@ void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, sho
     }
 }
 
-// Draw a rounded rectangle
-void drawRoundRect(short x, short y, short w, short h, short r, char color) {
-    /* Draw a rounded rectangle outline with top left vertex (x,y), width w,
-      height h and radius of curvature r at given color
-      Parameters:
-           x:  x-coordinate of top-left vertex. The x-coordinate of
-               the top-left of the screen is 0. It increases to the right.
-           y:  y-coordinate of top-left vertex. The y-coordinate of
-               the top-left of the screen is 0. It increases to the bottom.
-           w:  width of the rectangle
-           h:  height of the rectangle
-           color:  16-bit color of the rectangle outline
-      Returns: Nothing
-    */
-    // smarter version
-    drawHLine(x + r, y, w - 2 * r, color);          // Top
-    drawHLine(x + r, y + h - 1, w - 2 * r, color);  // Bottom
-    drawVLine(x, y + r, h - 2 * r, color);          // Left
-    drawVLine(x + w - 1, y + r, h - 2 * r, color);  // Right
-    // draw four corners
-    drawCircleHelper(x + r, y + r, r, 1, color);
-    drawCircleHelper(x + w - r - 1, y + r, r, 2, color);
-    drawCircleHelper(x + w - r - 1, y + h - r - 1, r, 4, color);
-    drawCircleHelper(x + r, y + h - r - 1, r, 8, color);
-}
-
-// Fill a rounded rectangle
-void fillRoundRect(short x, short y, short w, short h, short r, char color) {
-    // smarter version
-    fillRect(x + r, y, w - 2 * r, h, color);
-
-    // draw four corners
-    fillCircleHelper(x + w - r - 1, y + r, r, 1, h - 2 * r - 1, color);
-    fillCircleHelper(x + r, y + r, r, 2, h - 2 * r - 1, color);
-}
-
 
 // fill a rectangle
 void fillRect(short x, short y, short w, short h, char color) {
@@ -449,16 +415,44 @@ void fillRect(short x, short y, short w, short h, char color) {
     }
 }
 
+void draw8x8Char(short colx, short coly, unsigned char fgcolor, unsigned char bgcolor) {
+
+    unsigned char bits[] = {
+            0b00010000,
+            0b00110000,
+            0b01110000,
+            0b11111111,
+            0b11111111,
+            0b01110000,
+            0b00110000,
+            0b00010000,
+    };
+
+    for (int y = 0; y < 8; y++) {
+        unsigned char line = bits[y];
+
+        // get the starting x/y pixel location
+        short scrx = colx * 8;
+        short scry = coly * 8;
+
+        for (int x = 0; x < 8; x++) {
+            drawPixel(scrx + x, scry + y, BitVal(line, (7 - x)) == 0x01 ? fgcolor : bgcolor);
+        }
+
+    }
+}
+
 
 // Draw a character
 void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) {
     char i, j;
-    if ((x >= SCREEN_WIDTH) ||        // Clip right
-        (y >= SCREEN_HEIGHT) ||       // Clip bottom
-        ((x + 8 * size - 1) < 0) ||  // Clip left
-        ((y + 8 * size - 1) < 0))    // Clip top
+    if ((x >= SCREEN_WIDTH) ||          // Clip right
+        (y >= SCREEN_HEIGHT) ||         // Clip bottom
+        ((x + 8 * size - 1) < 0) ||     // Clip left
+        ((y + 8 * size - 1) < 0))       // Clip top
         return;
 
+    // this is set for 5x7 fonts. TODO create a true 8x8 version
     for (i = 0; i < 6; i++) {
         unsigned char line;
         if (i == 5)
@@ -511,14 +505,9 @@ void setTextColor(char c) {
     textcolor = textbgcolor = c;
 }
 
-void setTextColor2(char c, char b) {
-    /* Set color of text to be displayed
-      Parameters:
-           c = 16-bit color of text
-           b = 16-bit color of text background
-    */
-    textcolor = c;
-    textbgcolor = b;
+void setFgBgTextColor(char fg, char bg) {
+    textcolor = fg;
+    textbgcolor = bg;
 }
 
 void setTextWrap(char w) {
@@ -549,8 +538,7 @@ void tft_write(unsigned char c) {
 
 void writeString(char *str) {
     /* Print text onto screen
-      Call tft_setTextCursor(), tft_setTextColor(), tft_setTextSize()
-       as necessary before printing
+      Call setTextCursor(), setTextColor(), setTextSize() as necessary before printing
     */
     while (*str) {
         tft_write(*str++);

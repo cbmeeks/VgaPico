@@ -47,15 +47,14 @@ void drawCircle(short x0, short y0, short r, char color) ;
 void drawCircleHelper( short x0, short y0, short r, unsigned char cornername, char color) ;
 void fillCircle(short x0, short y0, short r, char color) ;
 void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, short delta, char color) ;
-void drawRoundRect(short x, short y, short w, short h, short r, char color) ;
-void fillRoundRect(short x, short y, short w, short h, short r, char color) ;
 void fillRect(short x, short y, short w, short h, char color) ;
 void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) ;
 void setTextCursor(short x, short y);
 void setTextColor(char c);
-void setTextColor2(char c, char bg);
+void setFgBgTextColor(char fg, char bg);
 void setTextSize(unsigned char s);
 void setTextWrap(char w);
 void tft_write(unsigned char c) ;
 void writeString(char* str) ;
 
+void draw8x8Char(short colx, short coly, unsigned char fgcolor, unsigned char bgcolor);

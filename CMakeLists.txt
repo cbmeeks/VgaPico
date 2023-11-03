@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
         glcdfont.h
         demo.c
         font.h
+        bit_helper.h
 )
 
 # by default the header is generated into the build dir
