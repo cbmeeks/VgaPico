@@ -23,3 +23,11 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 * Add support for sprites.
 * Add support for scrolling.
 * Etc...
+
+
+### Wiring
+* HSYNC = GPIO14
+* VSYNC = GPIO15
+* RED = GPIO2 & GPIO3
+* GREEN = GPIO4 & GPIO5
+* BLUE = GPIO6 & GPIO7
