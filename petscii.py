@@ -1,12 +1,17 @@
 import sys
 
+# Standard Commodore PETSCII
+#fontname = "chargen"
+
+# Non-Commodore PETSCII
+fontname = "901447-10m.bin"
 
 class Petscii:
     def __init__(self):
         self.byte_arr = []
 
     def create(self):
-        with open("petscii/chargen", "rb") as f:
+        with open(f"fonts/petscii/{fontname}", "rb") as f:
             count = 0
             byte = f.read(1)
             while byte != b"" and count < 2048:
@@ -25,9 +30,16 @@ class Petscii:
                 out.append(self.byte_arr[y * 8 + x] + ",")
             out.append("},")
 
-        with open("petscii/petscii.h", "w") as f:
+        with open("fonts/petscii/petscii.h", "w") as f:
+            f.write("%s\n" % "#ifndef PETSCII_H")
+            f.write("%s\n\n" % "#define PETSCII_H")
+            f.write("%s\n" % "static const unsigned char petscii[256][8] = {")
+
             for s in out:
                 f.write("%s\n" % s)
+
+            f.write("%s\n\n" % "};")
+            f.write("%s\n\n" % "#endif")
 
 
 p = Petscii()

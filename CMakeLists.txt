@@ -20,11 +20,9 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
         vga_graphics.c
-        glcdfont.h
+        fonts/glcdfont.h
         demo.c
-        font.h
         bit_helper.h
-        petscii/petscii.h
 )
 
 # by default the header is generated into the build dir

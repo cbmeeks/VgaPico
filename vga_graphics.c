@@ -12,13 +12,13 @@
 #include "hsync.pio.h"
 #include "vsync.pio.h"
 #include "rgb.pio.h"
-#include "glcdfont.h"
+#include "fonts/glcdfont.h"
 //#include "font.h"
 
 // Library includes
 #include "vga_graphics.h"
 #include "bit_helper.h"
-#include "petscii/petscii.h"
+#include "fonts/petscii/petscii.h"
 
 // VGA defines
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
