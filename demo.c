@@ -13,7 +13,7 @@
 #include "vga_graphics.h"
 
 
-int main() {
+int Demo_00_main() {
     initVGA();
     clearScreen();
 
@@ -29,7 +29,7 @@ int main() {
 }
 
 // Rename to main() to run this demo.
-int Demo_02_main() {
+int main() {
     initVGA();
     clearScreen();
 
