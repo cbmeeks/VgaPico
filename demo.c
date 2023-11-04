@@ -13,7 +13,9 @@
 #include "vga_graphics.h"
 
 void drawChars();
+
 void drawChars2();
+
 void drawChars3();
 
 int main() {
@@ -33,8 +35,13 @@ int main() {
 
     while (1) {
         drawTextMode();
-        shiftCharactersUp();
-        sleep_ms(2000);
+//        shiftCharactersUp();
+
+        for (int x = 0; x < 40; x++) {
+            drawCharacter(x, 29 , rand() % 256);
+        }
+
+        sleep_ms(500);
     }
 
 }
