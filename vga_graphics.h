@@ -49,7 +49,6 @@ void fillCircle(short x0, short y0, short r, char color) ;
 void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, short delta, char color) ;
 void fillRect(short x, short y, short w, short h, char color) ;
 void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) ;
-void setTextCursor(short x, short y);
 void setTextColor(char c);
 void setFgBgTextColor(char fg, char bg);
 void setTextSize(unsigned char s);
@@ -57,10 +56,17 @@ void setTextWrap(char w);
 void tft_write(unsigned char c) ;
 void writeString(char* str) ;
 
-// Font methods
-void clearTextMode(short charidx);
-void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor);
-void drawCharacter(short colx, short coly, short charidx);
+// Font and screen methods
+void clearTextMode(unsigned short charidx);
+void draw8x8Char(unsigned short colx, unsigned short coly, unsigned short charidx, unsigned char fgcolor, unsigned char bgcolor);
+void drawCharacter(unsigned short colx, unsigned short coly, unsigned short charidx);
 void drawTextMode();
+void setTextCursor(unsigned short x, unsigned short y);
 void drawCharacterString(char *str);
 void _text_write(unsigned char c);
+
+void clearFGColors(unsigned char color);
+void clearBGColors(unsigned char color);
+void setFGColor(unsigned short colx, unsigned short coly, unsigned char color);
+void setBGColor(unsigned short colx, unsigned short coly, unsigned char color);
+void shiftCharactersUp();

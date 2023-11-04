@@ -48,6 +48,8 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
 #define TEXT_MODE_HEIGHT 30
 #define TEXT_MODE_COUNT (TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT)
 unsigned char text_buffer[TEXT_MODE_COUNT];
+unsigned char text_fg_color_buffer[TEXT_MODE_COUNT];
+unsigned char text_bg_color_buffer[TEXT_MODE_COUNT];
 
 // Text Mode cursor
 unsigned short cursor_x, cursor_y;
@@ -430,7 +432,11 @@ void fillRect(short x, short y, short w, short h, char color) {
  * @param fgcolor Foreground color
  * @param bgcolor Background color
  */
-void draw8x8Char(short colx, short coly, short charidx, unsigned char fgcolor, unsigned char bgcolor) {
+void draw8x8Char(unsigned short colx,
+                 unsigned short coly,
+                 unsigned short charidx,
+                 unsigned char fgcolor,
+                 unsigned char bgcolor) {
     for (int y = 0; y < 8; y++) {
         unsigned char line = petscii[charidx][y];
 
@@ -451,7 +457,8 @@ void drawTextMode() {
     int x = 0;
     int y = 0;
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
-        draw8x8Char(x, y, text_buffer[y * TEXT_MODE_HEIGHT + x], 0b11111111, 0b11000011);
+        int index = y * TEXT_MODE_HEIGHT + x;
+        draw8x8Char(x, y, text_buffer[index], text_fg_color_buffer[index], text_bg_color_buffer[index]);
         x++;
         if (x >= TEXT_MODE_WIDTH) {
             x = 0;
@@ -467,20 +474,20 @@ void drawTextMode() {
  * @param coly Screen column Y
  * @param charidx Character index from within font buffer
  */
-void drawCharacter(short colx, short coly, short charidx) {
+void drawCharacter(unsigned short colx, unsigned short coly, unsigned short charidx) {
     if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
     if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
     if (charidx < 0 || charidx >= 256) return;
     text_buffer[coly * TEXT_MODE_HEIGHT + colx] = charidx;
 }
 
-void clearTextMode(short charidx) {
+void clearTextMode(unsigned short charidx) {
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
         text_buffer[i] = charidx;
     }
 }
 
-void setTextCursor(short x, short y) {
+void setTextCursor(unsigned short x, unsigned short y) {
     cursor_x = x;
     cursor_y = y;
 }
@@ -505,6 +512,40 @@ void _text_write(unsigned char c) {
     }
 }
 
+
+void clearFGColors(unsigned char color) {
+    for (int i = 0; i < TEXT_MODE_COUNT; i++) {
+        text_fg_color_buffer[i] = color;
+    }
+}
+
+void clearBGColors(unsigned char color) {
+    for (int i = 0; i < TEXT_MODE_COUNT; i++) {
+        text_bg_color_buffer[i] = color;
+    }
+}
+
+void setFGColor(unsigned short colx, unsigned short coly, unsigned char color) {
+    if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
+    if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
+    text_fg_color_buffer[coly * TEXT_MODE_HEIGHT + colx] = color;
+}
+
+void setBGColor(unsigned short colx, unsigned short coly, unsigned char color) {
+    if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
+    if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
+    text_bg_color_buffer[coly * TEXT_MODE_HEIGHT + colx] = color;
+}
+
+void shiftCharactersUp() {
+    for (int y = 1; y < TEXT_MODE_HEIGHT; y++) {
+        for (int x = 0; x < TEXT_MODE_WIDTH; x++) {
+            text_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_buffer[(y * TEXT_MODE_HEIGHT) + x];
+            text_fg_color_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_fg_color_buffer[(y * TEXT_MODE_HEIGHT) + x];
+            text_bg_color_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_bg_color_buffer[(y * TEXT_MODE_HEIGHT) + x];
+        }
+    }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
