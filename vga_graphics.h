@@ -114,3 +114,7 @@ void setBGColor(unsigned short colx, unsigned short coly, unsigned char color);
 
 void shiftCharactersUp();
 
+
+// Sprites
+void draw16x16Sprite(unsigned char spriteNumber, int x, int y);
+void drawToSpriteBuffer(unsigned char spriteNumber, unsigned short x, unsigned short y, unsigned char color);

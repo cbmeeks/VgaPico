@@ -23,20 +23,38 @@ int main() {
     setTextCursor(0, 28);
     drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
 
-    setTextCursor(0, 29);
+    setTextCursor(0, 15);
     drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
-    setFGColor(0,29, 0b11110000);
-    setTextCursor(0,27);
+
+    for (int y = 0; y < 16; y++) {
+        for (int x = 0; x < 16; x++) {
+            drawToSpriteBuffer(0, x, y, 0b11111100);
+        }
+    }
+
+    drawToSpriteBuffer(0, 4, 4, 0b11000000);
+    drawToSpriteBuffer(0, 4, 5, 0b11000000);
+    drawToSpriteBuffer(0, 4, 6, 0b11000000);
+    drawToSpriteBuffer(0, 4, 7, 0b11000000);
+    drawToSpriteBuffer(0, 4, 8, 0b11000000);
+    drawToSpriteBuffer(0, 4, 9, 0b11000000);
+
+    int x = 0;
 
     while (1) {
         drawTextMode();
         toggleCursor();
+
+//        drawPixel(100, 100, 0b11111100);
+        draw16x16Sprite(0, x, 116);
+        x++;
+        if (x > 320) x = 0;
 //        shiftCharactersUp();
 //        for (int i = 0; i < 40; i++) {
 //            setFGColor(i, 0, rand() % 63);
 //        }
 
-        sleep_ms(200);
+//        sleep_ms(200);
     }
 
 }

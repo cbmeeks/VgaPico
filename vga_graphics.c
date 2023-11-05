@@ -98,6 +98,10 @@ char textcolor, textbgcolor, wrap;
 //////////////////////////////////////////////////////////////////////
 
 
+// Sprite buffer
+unsigned char sprite_buffer[128][16 * 16] = {};
+
+
 /**
  * Initialize the Pico for VGA video generation.
  * This method sets up the PIO (only one) and three state machines (SM) inside.
@@ -466,6 +470,22 @@ void fillRect(short x, short y, short w, short h, char color) {
         }
     }
 }
+
+void drawToSpriteBuffer(unsigned char spriteNumber, unsigned short x, unsigned short y, unsigned char color) {
+    sprite_buffer[spriteNumber][(y * 16) + x] = color;
+}
+
+
+void draw16x16Sprite(unsigned char spriteNumber, int x, int y) {
+    for (int line_y = 0; line_y < 16; line_y++) {
+        for (int col_x = 0; col_x < 16; col_x++) {
+            unsigned char color = (sprite_buffer[spriteNumber][(line_y * 16) + col_x]) & 0b00111111;
+            if (color > 0)
+                drawPixel(x + col_x, y + line_y, color);
+        }
+    }
+}
+
 
 /**
  * Draw an 8x8 character using the PETSCII font to the screen at 40x30 characters
