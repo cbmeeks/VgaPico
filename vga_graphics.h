@@ -61,7 +61,9 @@ void clearTextMode(unsigned short charidx);
 void draw8x8Char(unsigned short colx, unsigned short coly, unsigned short charidx, unsigned char fgcolor, unsigned char bgcolor);
 void drawCharacterAt(unsigned short colx, unsigned short coly, unsigned short charidx);
 void drawTextMode();
+void getTextUnderCursor();
 void setTextCursor(unsigned short x, unsigned short y);
+void toggleCursor();
 void drawCharacterString(char *str);
 void _text_write(unsigned char c);
 

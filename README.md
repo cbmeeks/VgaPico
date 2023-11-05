@@ -6,6 +6,10 @@ The intention is to be easy to learn and provide 320x240 resolution with 64 colo
 ### PICO_SDK_PATH
 Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or your local OS environment variables.  This is required to build the project.
 
+### Useful videos 
+https://www.youtube.com/watch?v=KCGy7Gz1QrE
+
+
 ### Features
 * 320x240 resolution
 * 64 colors
@@ -41,8 +45,10 @@ Make sure you set the `PICO_SDK_PATH` either in the `CMakeLists.txt` file or you
 
 ![demo03.jpg](images%2Fdemo03.jpg)
 
+
 ### Commodore PETSCII Font!!
 ![demo04.jpg](images%2Fdemo04.jpg)
+
 
 ## Fonts
 Here is a good site to get different PETSCII fonts:

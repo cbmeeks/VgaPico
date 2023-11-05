@@ -26,15 +26,17 @@ int main() {
     setTextCursor(0, 29);
     drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
     setFGColor(0,29, 0b11110000);
+    setTextCursor(0,27);
 
     while (1) {
         drawTextMode();
-        shiftCharactersUp();
+        toggleCursor();
+//        shiftCharactersUp();
 //        for (int i = 0; i < 40; i++) {
 //            setFGColor(i, 0, rand() % 63);
 //        }
 
-        sleep_ms(5000);
+        sleep_ms(200);
     }
 
 }

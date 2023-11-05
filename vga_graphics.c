@@ -78,6 +78,8 @@ unsigned char text_bg_color_buffer[TEXT_MODE_COUNT];
 
 // Text Mode cursor position and colors
 unsigned short cursor_x, cursor_y;
+unsigned short char_idx_under_cursor;
+bool cursor_shown = true;   // whether this cursor image is current visible or the underlying text.
 
 // Text Mode defaults
 #define CURSOR_CHAR 32
@@ -548,6 +550,10 @@ void clearTextMode(unsigned short charidx) {
 }
 
 
+void getTextUnderCursor() {
+    char_idx_under_cursor = text_buffer[(cursor_y * TEXT_MODE_WIDTH) + cursor_x];
+}
+
 /**
  * Updates the screen cursor position based on character cells (40x30)
  * @param x screen x column
@@ -556,7 +562,26 @@ void clearTextMode(unsigned short charidx) {
 void setTextCursor(unsigned short x, unsigned short y) {
     cursor_x = x;
     cursor_y = y;
+    getTextUnderCursor();
 }
+
+
+void toggleCursor() {
+    int index = (cursor_y * TEXT_MODE_WIDTH) + cursor_x;
+    unsigned char fg = text_fg_color_buffer[index];
+    unsigned char bg = text_bg_color_buffer[index];
+
+    if (cursor_shown) {
+        setFGColor(cursor_x, cursor_y, bg);
+        setBGColor(cursor_x, cursor_y, fg);
+    } else {
+        setFGColor(cursor_x, cursor_y, fg);
+        setBGColor(cursor_x, cursor_y, bg);
+    }
+
+    cursor_shown = !cursor_shown;
+}
+
 
 /**
  * Draws a string of characters to the text buffer.
@@ -581,6 +606,7 @@ void _text_write(unsigned char c) {
     } else {
         drawCharacterAt(cursor_x, cursor_y, c);
         cursor_x++;
+        getTextUnderCursor();
         // TODO handle wrapping screen
     }
 }
