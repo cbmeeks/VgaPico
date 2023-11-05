@@ -78,11 +78,10 @@ unsigned char text_bg_color_buffer[TEXT_MODE_COUNT];
 
 // Text Mode cursor position and colors
 unsigned short cursor_x, cursor_y;
-unsigned short char_idx_under_cursor;
 bool cursor_shown = true;   // whether this cursor image is current visible or the underlying text.
 
 // Text Mode defaults
-#define CURSOR_CHAR 32
+#define BLANK_CHAR 32
 
 // Default colors
 unsigned char cursor_color = 0b11111000;
@@ -550,10 +549,6 @@ void clearTextMode(unsigned short charidx) {
 }
 
 
-void getTextUnderCursor() {
-    char_idx_under_cursor = text_buffer[(cursor_y * TEXT_MODE_WIDTH) + cursor_x];
-}
-
 /**
  * Updates the screen cursor position based on character cells (40x30)
  * @param x screen x column
@@ -562,10 +557,15 @@ void getTextUnderCursor() {
 void setTextCursor(unsigned short x, unsigned short y) {
     cursor_x = x;
     cursor_y = y;
-    getTextUnderCursor();
 }
 
 
+/**
+ * Simply toggles the foreground and background colors at the current cursor position.
+ * Note, this isn't exactly how the C64 does it.  The C64 will toggle between the current cursor color and the
+ * current background color.  Look at the C64 for an example.  I might switch to this at some point but for now,
+ * this works pretty well.
+ */
 void toggleCursor() {
     int index = (cursor_y * TEXT_MODE_WIDTH) + cursor_x;
     unsigned char fg = text_fg_color_buffer[index];
@@ -606,7 +606,6 @@ void _text_write(unsigned char c) {
     } else {
         drawCharacterAt(cursor_x, cursor_y, c);
         cursor_x++;
-        getTextUnderCursor();
         // TODO handle wrapping screen
     }
 }
@@ -676,7 +675,7 @@ void shiftCharactersUp() {
     for (int i = 0; i < TEXT_MODE_WIDTH; i++) {
         setFGColor(i, TEXT_MODE_HEIGHT - 1, foreground_color);
         setBGColor(i, TEXT_MODE_HEIGHT - 1, background_color);
-        drawCharacterAt(i, TEXT_MODE_HEIGHT - 1, CURSOR_CHAR);
+        drawCharacterAt(i, TEXT_MODE_HEIGHT - 1, BLANK_CHAR);
     }
 }
 
