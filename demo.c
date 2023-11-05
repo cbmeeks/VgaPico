@@ -22,18 +22,19 @@ int main() {
 
     setTextCursor(0, 28);
     drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
+
     setTextCursor(0, 29);
     drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
+    setFGColor(0,29, 0b11110000);
 
     while (1) {
         drawTextMode();
         shiftCharactersUp();
+//        for (int i = 0; i < 40; i++) {
+//            setFGColor(i, 0, rand() % 63);
+//        }
 
-        for (int i = 0; i < 40; i++) {
-            drawCharacterAt(i, 29, rand() % 256);
-        }
-
-        sleep_ms(500);
+        sleep_ms(5000);
     }
 
 }

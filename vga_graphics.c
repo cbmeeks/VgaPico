@@ -76,8 +76,17 @@ unsigned char text_buffer[TEXT_MODE_COUNT];
 unsigned char text_fg_color_buffer[TEXT_MODE_COUNT];
 unsigned char text_bg_color_buffer[TEXT_MODE_COUNT];
 
-// Text Mode cursor position
+// Text Mode cursor position and colors
 unsigned short cursor_x, cursor_y;
+
+// Text Mode defaults
+#define CURSOR_CHAR 32
+
+// Default colors
+unsigned char cursor_color = 0b11111000;
+unsigned char foreground_color = 0b11111000;
+unsigned char background_color = 0b11000011;
+
 
 // For drawLine
 #define swap(a, b) \
@@ -549,7 +558,6 @@ void setTextCursor(unsigned short x, unsigned short y) {
     cursor_y = y;
 }
 
-
 /**
  * Draws a string of characters to the text buffer.
  * Note, we are not currently handling wrapping.
@@ -636,6 +644,13 @@ void shiftCharactersUp() {
             text_fg_color_buffer[((y - 1) * TEXT_MODE_WIDTH) + x] = text_fg_color_buffer[(y * TEXT_MODE_WIDTH) + x];
             text_bg_color_buffer[((y - 1) * TEXT_MODE_WIDTH) + x] = text_bg_color_buffer[(y * TEXT_MODE_WIDTH) + x];
         }
+    }
+
+    // now draw a blank line at the bottom with the current foreground/background color
+    for (int i = 0; i < TEXT_MODE_WIDTH; i++) {
+        setFGColor(i, TEXT_MODE_HEIGHT - 1, foreground_color);
+        setBGColor(i, TEXT_MODE_HEIGHT - 1, background_color);
+        drawCharacterAt(i, TEXT_MODE_HEIGHT - 1, CURSOR_CHAR);
     }
 }
 
