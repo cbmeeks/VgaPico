@@ -12,33 +12,25 @@
 #include "pico/stdlib.h"
 #include "vga_graphics.h"
 
-void drawChars();
-
-void drawChars2();
-
-void drawChars3();
-
 int main() {
     initVGA();
     clearScreen();
 
     clearTextMode(32);
-    clearFGColors(0b11111100);
+    clearFGColors(0b11111111);
     clearBGColors(0b11000011);
 
-    setTextCursor(0, 15);
-//    drawCharacterString("SXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSX");
-
-//    drawChars();
-    drawChars2();
-//    drawChars3();
+    setTextCursor(0, 28);
+    drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
+    setTextCursor(0, 29);
+    drawCharacterString("QXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSXSA");
 
     while (1) {
         drawTextMode();
-//        shiftCharactersUp();
+        shiftCharactersUp();
 
-        for (int x = 0; x < 40; x++) {
-            drawCharacter(x, 29 , rand() % 256);
+        for (int i = 0; i < 40; i++) {
+            drawCharacterAt(i, 29, rand() % 256);
         }
 
         sleep_ms(500);
@@ -46,31 +38,3 @@ int main() {
 
 }
 
-void drawChars() {
-    int c = 0;
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 40; x++) {
-            draw8x8Char(x, y, c, 0b11001111, 0b11000011);
-            c++;
-            if (c > 255) return;
-        }
-    }
-}
-
-void drawChars2() {
-    for (int y = 0; y < 30; y++) {
-        for (int x = 0; x < 40; x++) {
-            setFGColor(x, y, rand() % 64);
-            setBGColor(x, y, rand() % 64);
-            drawCharacter(x, y, rand() % 256);
-        }
-    }
-}
-
-void drawChars3() {
-    for (int y = 0; y < 30; y++) {
-        for (int x = 0; x < 40; x++) {
-            drawCharacter(x, y, rand() % 256);
-        }
-    }
-}

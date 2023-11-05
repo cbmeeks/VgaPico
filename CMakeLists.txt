@@ -20,7 +20,6 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
         vga_graphics.c
-        fonts/glcdfont.h
         demo.c
         bit_helper.h
 )
@@ -37,7 +36,7 @@ pico_add_extra_outputs(${PROJECT_NAME})
 # must match with executable name and source file names
 target_sources(${PROJECT_NAME} PRIVATE demo.c vga_graphics.c)
 
-# Link to pico_stdlib (gpio, time, etc. functions)
+# Link to libraries (gpio, time, etc. functions)
 target_link_libraries(${PROJECT_NAME}
         pico_multicore
         pico_stdlib

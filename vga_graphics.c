@@ -2,9 +2,10 @@
 
 */
 
-
 // Pico hardware includes
 #include <stdlib.h>
+#include <pico/stdio.h>
+#include <pico/printf.h>
 #include "hardware/pio.h"
 #include "hardware/dma.h"
 
@@ -12,8 +13,6 @@
 #include "hsync.pio.h"
 #include "vsync.pio.h"
 #include "rgb.pio.h"
-#include "fonts/glcdfont.h"
-//#include "font.h"
 
 // Library includes
 #include "vga_graphics.h"
@@ -38,6 +37,19 @@ PIO pio = pio0;
 volatile uint32_t currentFrame;         // frame counter
 volatile int currentScanLine = 0;       // current processed scan line
 
+
+/**
+ * VGA Data Array
+ * This array is a "one pixel per byte" buffer that holds all pixels in a 320x240 resolution.
+ * Each byte in this array corresponds to one pixel in the following format:  XXRRGGBB.
+ * The top two bits of the byte are currently ignored.  Meaning we have six bits of color that
+ * results in 63 colors plus black.
+ *
+ * For example, white would be built as:  XX111111   where "X" is an ignored bit.
+ * Bright green = XX001100
+ * Bright blue = XX000011
+ * etc.
+ */
 #define TXCOUNT (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define DMATXCOUNT SCREEN_WIDTH
 unsigned char vga_data_array[TXCOUNT];
@@ -47,11 +59,24 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
 #define TEXT_MODE_WIDTH 40
 #define TEXT_MODE_HEIGHT 30
 #define TEXT_MODE_COUNT (TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT)
+
+/**
+ * TEXT BUFFER
+ * Character buffer used to hold text and other characters.
+ * Similar to the $0400 location on a Commodore 64.  Only 1200 bytes vs 1000.
+ */
 unsigned char text_buffer[TEXT_MODE_COUNT];
+
+/**
+ * FOREGROUND COLOR BUFFER
+ * BACKGROUND COLOR BUFFER
+ * A buffer the same size as the text_buffer so that each character has its own foreground and background color
+ * from a palette of 64 colors.
+ */
 unsigned char text_fg_color_buffer[TEXT_MODE_COUNT];
 unsigned char text_bg_color_buffer[TEXT_MODE_COUNT];
 
-// Text Mode cursor
+// Text Mode cursor position
 unsigned short cursor_x, cursor_y;
 
 // For drawLine
@@ -73,6 +98,14 @@ char textcolor, textbgcolor, wrap;
 //////////////////////////////////////////////////////////////////////
 
 
+/**
+ * Initialize the Pico for VGA video generation.
+ * This method sets up the PIO (only one) and three state machines (SM) inside.
+ * One SM is responsible for generating the HSYNC signal, one for the VSYNC signal
+ * and one for RGB color generation.
+ *
+ * At the end of this method, we launch the DMA controller.
+ */
 void initVGA() {
     // Set PIO program offset
     uint hsync_offset = pio_add_program(pio, &hsync_program);
@@ -103,8 +136,14 @@ void initVGA() {
     initDma(rgb_sm);
 }
 
-void initDma(uint rgb_sm) {
 
+/**
+ * Initializes the DMA controller which is responsible for copying data into the RGB state machine
+ * automatically.  This DMA controller (which uses two of the 12 channels) automatically sends data from
+ * the {@see vga_data_array} to the RGB SM in the PIO.
+ * @param rgb_sm the number of the RGM SM
+ */
+void initDma(uint rgb_sm) {
     // Channel Zero (sends color data to PIO VGA machine)
     dma_channel_config c0 = dma_channel_get_default_config(RGB_CHAN_0);  // default configs
     channel_config_set_transfer_data_size(&c0, DMA_SIZE_8);              // 8-bit transfers
@@ -155,9 +194,14 @@ void initDma(uint rgb_sm) {
     dma_start_channel_mask((1u << RGB_CHAN_0));
 }
 
-// DMA handler - called at the end of every scanline
+/**
+ *  DMA handler - called at the end of every scanline
+ *  This callback needs to be VERY brief.  Do not put complex logic in here.
+ *  The main purpose is to keep track the current scanline and frame.
+ *  Also, it updates the starting address (the SOURCE) of the first DMA channel.
+ *  This allows us to use "double-pixel" lines to get 240 resolution out of a 640x480 VGA signal.
+ */
 void dma_handler() {
-
     // Clear the interrupt request for DMA control channel
     dma_hw->ints0 = (1u << RGB_CHAN_0);
 
@@ -171,12 +215,11 @@ void dma_handler() {
     address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 1)];
 }
 
-
 // A function for drawing a pixel with a specified color.
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
-void drawPixel(short x, short y, char color) {
+void drawPixel(unsigned short x, unsigned short y, char color) {
     // Range checks (320x240 display)
     if ((x < SCREEN_WIDTH - 1) && (x >= 0) && (y >= 0) && (y < SCREEN_HEIGHT - 1)) {
         int pixel = ((SCREEN_WIDTH * y) + x);
@@ -441,8 +484,8 @@ void draw8x8Char(unsigned short colx,
         unsigned char line = petscii[charidx][y];
 
         // get the starting x/y pixel location
-        short scrx = colx * 8;
-        short scry = coly * 8;
+        unsigned short scrx = colx * 8;
+        unsigned short scry = coly * 8;
 
         for (int x = 0; x < 8; x++) {
             drawPixel(scrx + x, scry + y, BitVal(line, (7 - x)) == 0x01 ? fgcolor : bgcolor);
@@ -452,12 +495,15 @@ void draw8x8Char(unsigned short colx,
 
 /**
  * Draws the entire text mode character buffer.
+ * The TextMode is a 40x30 buffer that contains individual characters, each one byte.
+ * The TextMode has a companion foreground and background color buffers as well.
+ * Meaning, each character cell can have its own foreground and background color.
   */
 void drawTextMode() {
     int x = 0;
     int y = 0;
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
-        int index = y * TEXT_MODE_HEIGHT + x;
+        int index = (y * TEXT_MODE_WIDTH) + x;
         draw8x8Char(x, y, text_buffer[index], text_fg_color_buffer[index], text_bg_color_buffer[index]);
         x++;
         if (x >= TEXT_MODE_WIDTH) {
@@ -474,13 +520,18 @@ void drawTextMode() {
  * @param coly Screen column Y
  * @param charidx Character index from within font buffer
  */
-void drawCharacter(unsigned short colx, unsigned short coly, unsigned short charidx) {
+void drawCharacterAt(unsigned short colx, unsigned short coly, unsigned short charidx) {
     if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
     if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
     if (charidx < 0 || charidx >= 256) return;
-    text_buffer[coly * TEXT_MODE_HEIGHT + colx] = charidx;
+    text_buffer[(coly * TEXT_MODE_WIDTH) + colx] = charidx;
 }
 
+/**
+ * Fill the text buffer with a chosen PETSCII character.
+ *
+ * @param charidx an index into the text_buffer {@see text_buffer}
+ */
 void clearTextMode(unsigned short charidx) {
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
         text_buffer[i] = charidx;
@@ -506,7 +557,7 @@ void _text_write(unsigned char c) {
     } else if (c == '\t') {
 
     } else {
-        drawCharacter(cursor_x, cursor_y, c);
+        drawCharacterAt(cursor_x, cursor_y, c);
         cursor_x++;
         // TODO handle wrapping screen
     }
@@ -540,9 +591,9 @@ void setBGColor(unsigned short colx, unsigned short coly, unsigned char color) {
 void shiftCharactersUp() {
     for (int y = 1; y < TEXT_MODE_HEIGHT; y++) {
         for (int x = 0; x < TEXT_MODE_WIDTH; x++) {
-            text_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_buffer[(y * TEXT_MODE_HEIGHT) + x];
-            text_fg_color_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_fg_color_buffer[(y * TEXT_MODE_HEIGHT) + x];
-            text_bg_color_buffer[((y - 1) * TEXT_MODE_HEIGHT) + x] = text_bg_color_buffer[(y * TEXT_MODE_HEIGHT) + x];
+            text_buffer[((y - 1) * TEXT_MODE_WIDTH) + x] = text_buffer[(y * TEXT_MODE_WIDTH) + x];
+            text_fg_color_buffer[((y - 1) * TEXT_MODE_WIDTH) + x] = text_fg_color_buffer[(y * TEXT_MODE_WIDTH) + x];
+            text_bg_color_buffer[((y - 1) * TEXT_MODE_WIDTH) + x] = text_bg_color_buffer[(y * TEXT_MODE_WIDTH) + x];
         }
     }
 }
@@ -550,42 +601,44 @@ void shiftCharactersUp() {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // OLD, original code
+// While I have learned a lot from this code, I will be removing it eventually as I
+// "model" this library for my own needs.  :-)
 ///////////////////////////////////////////////////////////////////////////////////////
-
-// Draw a character
-void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) {
-    char i, j;
-    if ((x >= SCREEN_WIDTH) ||          // Clip right
-        (y >= SCREEN_HEIGHT) ||         // Clip bottom
-        ((x + 8 * size - 1) < 0) ||     // Clip left
-        ((y + 8 * size - 1) < 0))       // Clip top
-        return;
-
-    // this is set for 5x7 fonts. TODO create a true 8x8 version
-    for (i = 0; i < 6; i++) {
-        unsigned char line;
-        if (i == 5)
-            line = 0x0;
-        else
-            line = pgm_read_byte(font + (c * 5) + i);
-        for (j = 0; j < 8; j++) {
-            if (line & 0x1) {
-                if (size == 1)  // default size
-                    drawPixel(x + i, y + j, color);
-                else {  // big size
-                    fillRect(x + (i * size), y + (j * size), size, size, color);
-                }
-            } else if (bg != color) {
-                if (size == 1)  // default size
-                    drawPixel(x + i, y + j, bg);
-                else {  // big size
-                    fillRect(x + i * size, y + j * size, size, size, bg);
-                }
-            }
-            line >>= 1;
-        }
-    }
-}
+//
+//// Draw a character
+//void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) {
+//    char i, j;
+//    if ((x >= SCREEN_WIDTH) ||          // Clip right
+//        (y >= SCREEN_HEIGHT) ||         // Clip bottom
+//        ((x + 8 * size - 1) < 0) ||     // Clip left
+//        ((y + 8 * size - 1) < 0))       // Clip top
+//        return;
+//
+//    // this is set for 5x7 fonts. TODO create a true 8x8 version
+//    for (i = 0; i < 6; i++) {
+//        unsigned char line;
+//        if (i == 5)
+//            line = 0x0;
+//        else
+//            line = pgm_read_byte(font + (c * 5) + i);
+//        for (j = 0; j < 8; j++) {
+//            if (line & 0x1) {
+//                if (size == 1)  // default size
+//                    drawPixel(x + i, y + j, color);
+//                else {  // big size
+//                    fillRect(x + (i * size), y + (j * size), size, size, color);
+//                }
+//            } else if (bg != color) {
+//                if (size == 1)  // default size
+//                    drawPixel(x + i, y + j, bg);
+//                else {  // big size
+//                    fillRect(x + i * size, y + j * size, size, size, bg);
+//                }
+//            }
+//            line >>= 1;
+//        }
+//    }
+//}
 
 void setTextSize(unsigned char s) {
     /*Set size of text to be displayed

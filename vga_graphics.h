@@ -22,7 +22,7 @@
 
 // Give the I/O pins that we're using some names that make sense - usable in main()
 enum vga_pins {
-    HSYNC = 14, VSYNC = 15, RGB_PIN = 2
+    HSYNC = 8, VSYNC = 9, RGB_PIN = 2
 };
 
 extern unsigned char vga_data_array[];
@@ -37,7 +37,7 @@ void initDma(uint rgb_sm);
 void initVGA(void) ;
 void clearScreen(void);
 void nextFrame(void);
-void drawPixel(short x, short y, char color) ;
+void drawPixel(unsigned short x, unsigned short y, char color) ;
 void drawVLine(short x, short y, short h, char color) ;
 void drawHLine(short x, short y, short w, char color) ;
 void drawLine(short x0, short y0, short x1, short y1, char color) ;
@@ -59,7 +59,7 @@ void writeString(char* str) ;
 // Font and screen methods
 void clearTextMode(unsigned short charidx);
 void draw8x8Char(unsigned short colx, unsigned short coly, unsigned short charidx, unsigned char fgcolor, unsigned char bgcolor);
-void drawCharacter(unsigned short colx, unsigned short coly, unsigned short charidx);
+void drawCharacterAt(unsigned short colx, unsigned short coly, unsigned short charidx);
 void drawTextMode();
 void setTextCursor(unsigned short x, unsigned short y);
 void drawCharacterString(char *str);
@@ -70,3 +70,4 @@ void clearBGColors(unsigned char color);
 void setFGColor(unsigned short colx, unsigned short coly, unsigned char color);
 void setBGColor(unsigned short colx, unsigned short coly, unsigned char color);
 void shiftCharactersUp();
+
