@@ -12,7 +12,7 @@
 // Generated PIO program includes
 #include "hsync.pio.h"
 #include "vsync.pio.h"
-#include "rgb.pio.h"
+#include "rgb_320x240x64.pio.h"
 
 // Library includes
 #include "vga_graphics.h"
@@ -82,6 +82,7 @@ bool cursor_shown = true;   // whether this cursor image is current visible or t
 
 // Text Mode defaults
 #define BLANK_CHAR 32
+#define tabspace 4  // number of spaces for a tab
 
 // Default colors
 unsigned char cursor_color = 0b11111000;
@@ -89,20 +90,9 @@ unsigned char foreground_color = 0b11111000;
 unsigned char background_color = 0b11000011;
 
 
-// For drawLine
-#define swap(a, b) \
-  { \
-    short t = a; \
-    a = b; \
-    b = t; \
-  }
-
 //////////////////////////////////////////////////////////////////////
 // For drawing characters (original...will be removed)
 // For writing text
-#define tabspace 4  // number of spaces for a tab
-// For accessing the font library
-#define pgm_read_byte(addr) (*(const unsigned char*)(addr))
 unsigned short textsize;
 char textcolor, textbgcolor, wrap;
 //////////////////////////////////////////////////////////////////////
@@ -559,7 +549,6 @@ void setTextCursor(unsigned short x, unsigned short y) {
     cursor_y = y;
 }
 
-
 /**
  * Simply toggles the foreground and background colors at the current cursor position.
  * Note, this isn't exactly how the C64 does it.  The C64 will toggle between the current cursor color and the
@@ -660,7 +649,7 @@ void setBGColor(unsigned short colx, unsigned short coly, unsigned char color) {
 
 /**
  * Shifts the entire text buffer screen up one line (40 chars).
- * Destroys the very top line and does nothing with the very bottom line.
+ * Destroys the very top line and draws a blank line at the bottom.
  */
 void shiftCharactersUp() {
     for (int y = 1; y < TEXT_MODE_HEIGHT; y++) {
