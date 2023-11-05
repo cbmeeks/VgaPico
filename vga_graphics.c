@@ -538,11 +538,25 @@ void clearTextMode(unsigned short charidx) {
     }
 }
 
+
+/**
+ * Updates the screen cursor position based on character cells (40x30)
+ * @param x screen x column
+ * @param y screen y row
+ */
 void setTextCursor(unsigned short x, unsigned short y) {
     cursor_x = x;
     cursor_y = y;
 }
 
+
+/**
+ * Draws a string of characters to the text buffer.
+ * Note, we are not currently handling wrapping.
+ * Also, we're not really converting between ASCII and PETSCII properly.
+ * We're still using a PETSCII system at the moment.
+ * @param str string to write out
+ */
 void drawCharacterString(char *str) {
     while (*str) {
         _text_write(*str++);
@@ -564,30 +578,57 @@ void _text_write(unsigned char c) {
 }
 
 
+/**
+ * Fills the foreground color buffer with a single color in XXRRGGBB format.
+ * @param color the color
+ */
 void clearFGColors(unsigned char color) {
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
         text_fg_color_buffer[i] = color;
     }
 }
 
+/**
+ * Fills the background color buffer with a single color in XXRRGGBB format.
+ * @param color the color
+ */
 void clearBGColors(unsigned char color) {
     for (int i = 0; i < TEXT_MODE_COUNT; i++) {
         text_bg_color_buffer[i] = color;
     }
 }
 
+
+/**
+ * Sets the foreground color at a specified screen location (in 40x30 cells)
+ * @param colx screen x column
+ * @param coly screen y column
+ * @param color color
+ */
 void setFGColor(unsigned short colx, unsigned short coly, unsigned char color) {
     if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
     if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
-    text_fg_color_buffer[coly * TEXT_MODE_HEIGHT + colx] = color;
+    text_fg_color_buffer[coly * TEXT_MODE_WIDTH + colx] = color;
 }
 
+
+/**
+ * Sets the background color at a specified screen location (in 40x30 cells)
+ * @param colx screen x column
+ * @param coly screen y column
+ * @param color color
+ */
 void setBGColor(unsigned short colx, unsigned short coly, unsigned char color) {
     if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
     if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
-    text_bg_color_buffer[coly * TEXT_MODE_HEIGHT + colx] = color;
+    text_bg_color_buffer[coly * TEXT_MODE_WIDTH + colx] = color;
 }
 
+
+/**
+ * Shifts the entire text buffer screen up one line (40 chars).
+ * Destroys the very top line and does nothing with the very bottom line.
+ */
 void shiftCharactersUp() {
     for (int y = 1; y < TEXT_MODE_HEIGHT; y++) {
         for (int x = 0; x < TEXT_MODE_WIDTH; x++) {
