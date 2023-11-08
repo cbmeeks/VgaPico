@@ -35,7 +35,7 @@ class Petscii:
             f.write("%s\n\n" % "#define PETSCII_H")
             f.write("%s\n\n" % "// THIS FILE IS GENERATED WITH THE petscii.py PROGRAM!");
             f.write("%s\n\n" % "// DO NOT HAND EDIT!");
-            f.write("%s\n" % "static const unsigned char petscii[256][8] = {")
+            f.write("%s\n" % "unsigned char petscii[256][8] = {")
 
             for s in out:
                 f.write("%s\n" % s)

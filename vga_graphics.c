@@ -4,7 +4,8 @@
 
 // Graphic mode defines
 // NOTE!  These defines must match whatever PIO you are compiling in your CMakeLists.txt file.
-// Values:  __HORIZONTAL_160__, __HORIZONTAL_320__, __VERTICAL__240__, __VERTICAL__120__
+// Horizontal values:   __HORIZONTAL_640__, __HORIZONTAL_320__, __HORIZONTAL_160__, __HORIZONTAL_80__, __HORIZONTAL_40__
+// Vertical values:     __VERTICAL__240__, __VERTICAL__120__, __VERTICAL__60__, __VERTICAL__30__
 #define __HORIZONTAL_160__
 #define __VERTICAL__120__
 
@@ -30,12 +31,24 @@
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
 #define V_ACTIVE   479    // (active - 1)
 
+#ifdef __HORIZONTAL_640__
+#define RGB_ACTIVE 639    // (horizontal active) - 1
+#endif
+
 #ifdef __HORIZONTAL_320__
 #define RGB_ACTIVE 319    // (horizontal active) / 2 - 1
 #endif
 
 #ifdef __HORIZONTAL_160__
 #define RGB_ACTIVE 159    // (horizontal active) / 4 - 1
+#endif
+
+#ifdef __HORIZONTAL_80__
+#define RGB_ACTIVE 79    // (horizontal active) / 8 - 1
+#endif
+
+#ifdef __HORIZONTAL_40__
+#define RGB_ACTIVE 39    // (horizontal active) / 16 - 1
 #endif
 
 // DMA channels
@@ -47,12 +60,24 @@ PIO pio = pio0;
 
 // Screen width / height
 
+#ifdef __HORIZONTAL_640__
+#define SCREEN_WIDTH 640
+#endif
+
 #ifdef __HORIZONTAL_320__
 #define SCREEN_WIDTH 320
 #endif
 
 #ifdef __HORIZONTAL_160__
 #define SCREEN_WIDTH 160
+#endif
+
+#ifdef __HORIZONTAL_80__
+#define SCREEN_WIDTH 80
+#endif
+
+#ifdef __HORIZONTAL_40__
+#define SCREEN_WIDTH 40
 #endif
 
 #ifdef __VERTICAL__240__
@@ -63,6 +88,14 @@ PIO pio = pio0;
 #define SCREEN_HEIGHT 120
 #endif
 
+#ifdef __VERTICAL__60__
+#define SCREEN_HEIGHT 60
+#endif
+
+#ifdef __VERTICAL__30__
+#define SCREEN_HEIGHT 30
+#endif
+
 
 volatile uint32_t currentFrame;         // frame counter
 volatile int currentScanLine = 0;       // current processed scan line
@@ -70,7 +103,7 @@ volatile int currentScanLine = 0;       // current processed scan line
 
 /**
  * VGA Data Array
- * This array is a "one pixel per byte" buffer that holds all pixels in a 320x240 resolution.
+ * This array is a "one pixel per byte" buffer that holds all pixels in a 320x240 resolution (or whatever the resolution is).
  * Each byte in this array corresponds to one pixel in the following format:  XXRRGGBB.
  * The top two bits of the byte are currently ignored.  Meaning we have six bits of color that
  * results in 63 colors plus black.
@@ -87,6 +120,10 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
 
 // The character buffer
 
+#ifdef __HORIZONTAL_640__
+#define TEXT_MODE_WIDTH 80
+#endif
+
 #ifdef __HORIZONTAL_320__
 #define TEXT_MODE_WIDTH 40
 #endif
@@ -95,12 +132,28 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
 #define TEXT_MODE_WIDTH 20
 #endif
 
+#ifdef __HORIZONTAL_80__
+#define TEXT_MODE_WIDTH 10
+#endif
+
+#ifdef __HORIZONTAL_40__
+#define TEXT_MODE_WIDTH 5
+#endif
+
 #ifdef __VERTICAL__240__
 #define TEXT_MODE_HEIGHT 30
 #endif
 
 #ifdef __VERTICAL__120__
 #define TEXT_MODE_HEIGHT 15
+#endif
+
+#ifdef __VERTICAL__60__
+#define TEXT_MODE_HEIGHT 7
+#endif
+
+#ifdef __VERTICAL__30__
+#define TEXT_MODE_HEIGHT 3
 #endif
 
 
@@ -186,7 +239,6 @@ void initVGA() {
     initDma(rgb_sm);
 }
 
-
 /**
  * Initializes the DMA controller which is responsible for copying data into the RGB state machine
  * automatically.  This DMA controller (which uses two of the 12 channels) automatically sends data from
@@ -268,6 +320,14 @@ void dma_handler() {
 
 #ifdef __VERTICAL__120__
     address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 2)];
+#endif
+
+#ifdef __VERTICAL__60__
+    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 3)];
+#endif
+
+#ifdef __VERTICAL__30__
+    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 4)];
 #endif
 }
 
@@ -526,7 +586,6 @@ void drawToSpriteBuffer(unsigned char spriteNumber, unsigned short x, unsigned s
     sprite_buffer[spriteNumber][(y * 16) + x] = color;
 }
 
-
 void draw16x16Sprite(unsigned char spriteNumber, int x, int y) {
     for (int line_y = 0; line_y < 16; line_y++) {
         for (int col_x = 0; col_x < 16; col_x++) {
@@ -566,10 +625,11 @@ void draw8x8Char(unsigned short colx,
 
 /**
  * Draws the entire text mode character buffer.
- * The TextMode is a 40x30 buffer that contains individual characters, each one byte.
+ * The TextMode is a 40x30* buffer that contains individual characters, each one byte.
  * The TextMode has a companion foreground and background color buffers as well.
  * Meaning, each character cell can have its own foreground and background color.
-  */
+ * * The resolution is dynamic but 40x30 is the current max at 320x240 pixels
+ */
 void drawTextMode() {
     int x = 0;
     int y = 0;
@@ -737,6 +797,19 @@ void shiftCharactersUp() {
         setBGColor(i, TEXT_MODE_HEIGHT - 1, background_color);
         drawCharacterAt(i, TEXT_MODE_HEIGHT - 1, BLANK_CHAR);
     }
+}
+
+
+unsigned char fontBuffer(unsigned short charIndex, unsigned charDataIndex) {
+    // warning, this has no bounds checking!
+    // TODO add bounds checking
+    return petscii[charIndex][charDataIndex];
+}
+
+void setFontBuffer(unsigned short charIndex, unsigned char charDataIndex, unsigned char data) {
+    // warning, this has no bounds checking!
+    // TODO add bounds checking
+    petscii[charIndex][charDataIndex] = data;
 }
 
 

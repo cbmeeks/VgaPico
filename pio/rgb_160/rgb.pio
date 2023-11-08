@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
-//  rgb_320x240x64
+//  rgb.pio
 //
-//  This PIO config is for 320x240 resolution with 6 bit color
+//  This PIO config is for a horizontal resulution of 160 with 6 bit color
 //  Each pixel (6 bits, ignoring top 2 MSB) is sent through 6 GPIO to generate
 //  up to 63 colors plus black.
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,14 +18,14 @@ mov y, osr 					; Copy value from OSR to y scratch register
     wait 1 irq 1 [3]		; Wait for vsync active mode (starts 5 cycles after execution)
 
 // The timing for this needs to work out to 3200 cycles per scanline.
-// For example, this block takes 10 cycles.  This module runs at 125MHz.  We need to fill 640 pixels of time.
-// VGA runs at 25MHz*.  Now:  125MHz / 25MHz = 5.  5 * 640 = 3200.  Since we're drawing at 320 horizontal pixels
-// (and not 640), we make the timing twice as long so that we get: 10 * 320 = 3200.
+// For example, this block takes 20 cycles.  This module runs at 125MHz.  We need to fill 640 pixels of time.
+// VGA runs at 25MHz*.  Now:  125MHz / 25MHz = 5.  5 * 640 = 3200.  Since we're drawing at 160 horizontal pixels
+// (and not 640), we make the timing four times as long so that we get: 20 * 160 = 3200.
 // * (VGA is actually 25.175MHz but we're rounding down to make the math easy.  Most VGA monitors seem to be OK with this).
 
 colorout:
 	pull block				; Pull color value                          1 cycle
-	out pins, 6	[7] 		; Push out to pins (pixel)                  8 cycles
+	out pins, 6	[17] 		; Push out to pins (pixel)                  18 cycles
 	jmp x-- colorout		; Stay here thru horizontal active mode     1 cycle
 .wrap
 

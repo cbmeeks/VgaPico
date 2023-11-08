@@ -1,7 +1,7 @@
 #ifndef PETSCII_H
 #define PETSCII_H
 
-static const unsigned char petscii[256][8] = {
+unsigned char petscii[256][8] = {
 {
 0b00111100,
 0b01100110,

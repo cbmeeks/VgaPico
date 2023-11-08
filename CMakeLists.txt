@@ -27,15 +27,25 @@ add_executable(${PROJECT_NAME}
 # by default the header is generated into the build dir
 # however, alternatively you can choose to generate it somewhere else (in this case in the source tree for check in)
 
-# Build the 320x240x64 version.
-# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
-# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
-# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+# HSYNC and VSYNC are the same in all versions.  Only the RGB PIO needs to change for each resolution.
+# TODO, look at making this more dynamic and changeable within the code
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
 
-# Build the 160x240x64 version.
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+# Build the rgb_640 version.
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/rgb_640/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+
+# Build the 320x64 version.
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/rgb_320/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+
+# Build the 160x64 version.
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/rgb_160/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+
+# Build the 80x64 version.
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/rgb_80/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+
+# Build the 40x64 version.
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/rgb_40/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})
