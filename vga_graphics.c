@@ -4,9 +4,9 @@
 
 // Graphic mode defines
 // NOTE!  These defines must match whatever PIO you are compiling in your CMakeLists.txt file.
-// Values:  __HORIZONTAL_160__, __HORIZONTAL_320__
+// Values:  __HORIZONTAL_160__, __HORIZONTAL_320__, __VERTICAL__240__, __VERTICAL__120__
 #define __HORIZONTAL_160__
-
+#define __VERTICAL__120__
 
 
 // Pico hardware includes
@@ -55,7 +55,15 @@ PIO pio = pio0;
 #define SCREEN_WIDTH 160
 #endif
 
+#ifdef __VERTICAL__240__
 #define SCREEN_HEIGHT 240
+#endif
+
+#ifdef __VERTICAL__120__
+#define SCREEN_HEIGHT 120
+#endif
+
+
 volatile uint32_t currentFrame;         // frame counter
 volatile int currentScanLine = 0;       // current processed scan line
 
@@ -87,7 +95,15 @@ volatile unsigned char *address_pointer_array = &vga_data_array[0];
 #define TEXT_MODE_WIDTH 20
 #endif
 
+#ifdef __VERTICAL__240__
 #define TEXT_MODE_HEIGHT 30
+#endif
+
+#ifdef __VERTICAL__120__
+#define TEXT_MODE_HEIGHT 15
+#endif
+
+
 #define TEXT_MODE_COUNT (TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT)
 
 /**
@@ -246,7 +262,13 @@ void dma_handler() {
         currentFrame++;                 // increment frame counter
     }
 
+#ifdef __VERTICAL__240__
     address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 1)];
+#endif
+
+#ifdef __VERTICAL__120__
+    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 2)];
+#endif
 }
 
 // A function for drawing a pixel with a specified color.

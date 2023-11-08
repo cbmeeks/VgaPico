@@ -21,20 +21,23 @@ int main() {
     clearBGColors(0b11000011);
 
     int c = 0;
-    for (int y = 0; y < 14; y++) {
+    for (int y = 0; y < 15; y++) {
         for (int x = 0; x < 20; x++) {
+            setFGColor(x, y, rand() % 64);
+            setBGColor(x, y, rand() % 64);
             drawCharacterAt(x, y, c);
             c++;
             if (c > 255)c = 0;
         }
     }
 
+    drawTextMode();
 
     while (1) {
-        drawTextMode();
-        toggleCursor();
 
-//        drawLine(rand() % 160, rand() % 240, rand() % 160, rand() % 240, rand() % 64);
+//        toggleCursor();
+        drawLine(rand() % 160, rand() % 120, rand() % 160, rand() % 240, rand() % 64);
+        fillCircle(rand() % 160, rand() % 120, rand() % 16, rand() % 64);
 
         sleep_ms(200);
     }
