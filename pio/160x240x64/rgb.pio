@@ -1,0 +1,60 @@
+///////////////////////////////////////////////////////////////////////////////
+//  rgb_160x120x64
+//
+//  This PIO config is for 160x120 resolution with 6 bit color
+//  Each pixel (6 bits, ignoring top 2 MSB) is sent through 6 GPIO to generate
+//  up to 63 colors plus black.
+///////////////////////////////////////////////////////////////////////////////
+
+.program rgb
+
+pull block 					; Pull from FIFO to OSR (only once)
+mov y, osr 					; Copy value from OSR to y scratch register
+
+.wrap_target
+    set pins, 0 			; Zero RGB pins in blanking
+    mov x, y 				; Initialize counter variable
+
+    wait 1 irq 1 [3]		; Wait for vsync active mode (starts 5 cycles after execution)
+
+// The timing for this needs to work out to 3200 cycles per scanline.
+// For example, this block takes 10 cycles.  This module runs at 125MHz.  We need to fill 640 pixels of time.
+// VGA runs at 25MHz*.  Now:  125MHz / 25MHz = 5.  5 * 640 = 3200.  Since we're drawing at 160 horizontal pixels
+// (and not 640), we make the timing four times as long so that we get: 20 * 160 = 3200.
+// * (VGA is actually 25.175MHz but we're rounding down to make the math easy.  Most VGA monitors seem to be OK with this).
+
+colorout:
+	pull block				; Pull color value                          1 cycle
+	out pins, 6	[17] 		; Push out to pins (pixel)                  8 cycles
+	jmp x-- colorout		; Stay here thru horizontal active mode     1 cycle
+.wrap
+
+
+% c-sdk {
+static inline void rgb_program_init(PIO pio, uint sm, uint offset, uint pin) {
+
+    // creates state machine configuration object c, sets
+    // to default configurations.
+    pio_sm_config c = rgb_program_get_default_config(offset);
+
+    // Map the state machine's SET and OUT pin group to six pins, the `pin`
+    // parameter to this function is the lowest one. These groups overlap.
+    sm_config_set_set_pins(&c, pin, 6);
+    sm_config_set_out_pins(&c, pin, 6);
+
+
+    // Set this pin's GPIO function (connect PIO to the pad)
+    pio_gpio_init(pio, pin + 0);
+    pio_gpio_init(pio, pin + 1);
+    pio_gpio_init(pio, pin + 2);
+    pio_gpio_init(pio, pin + 3);
+    pio_gpio_init(pio, pin + 4);
+    pio_gpio_init(pio, pin + 5);
+
+    // Set the pin direction to output at the PIO (6 pins)
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 6, true);
+
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+}
+%}

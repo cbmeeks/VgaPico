@@ -2,6 +2,13 @@
 
 */
 
+// Graphic mode defines
+// NOTE!  These defines must match whatever PIO you are compiling in your CMakeLists.txt file.
+// Values:  __HORIZONTAL_160__, __HORIZONTAL_320__
+#define __HORIZONTAL_160__
+
+
+
 // Pico hardware includes
 #include <stdlib.h>
 #include <pico/stdio.h>
@@ -10,9 +17,9 @@
 #include "hardware/dma.h"
 
 // Generated PIO program includes
-#include "hsync.pio.h"
-#include "vsync.pio.h"
-#include "rgb_320x240x64.pio.h"
+#include "pio/hsync.pio.h"
+#include "pio/vsync.pio.h"
+#include "pio/rgb.pio.h"
 
 // Library includes
 #include "vga_graphics.h"
@@ -22,7 +29,14 @@
 // VGA defines
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
 #define V_ACTIVE   479    // (active - 1)
+
+#ifdef __HORIZONTAL_320__
 #define RGB_ACTIVE 319    // (horizontal active) / 2 - 1
+#endif
+
+#ifdef __HORIZONTAL_160__
+#define RGB_ACTIVE 159    // (horizontal active) / 4 - 1
+#endif
 
 // DMA channels
 #define RGB_CHAN_0 0
@@ -32,7 +46,15 @@
 PIO pio = pio0;
 
 // Screen width / height
+
+#ifdef __HORIZONTAL_320__
 #define SCREEN_WIDTH 320
+#endif
+
+#ifdef __HORIZONTAL_160__
+#define SCREEN_WIDTH 160
+#endif
+
 #define SCREEN_HEIGHT 240
 volatile uint32_t currentFrame;         // frame counter
 volatile int currentScanLine = 0;       // current processed scan line
@@ -55,8 +77,16 @@ volatile int currentScanLine = 0;       // current processed scan line
 unsigned char vga_data_array[TXCOUNT];
 volatile unsigned char *address_pointer_array = &vga_data_array[0];
 
-// The 40x30 character buffer
+// The character buffer
+
+#ifdef __HORIZONTAL_320__
 #define TEXT_MODE_WIDTH 40
+#endif
+
+#ifdef __HORIZONTAL_160__
+#define TEXT_MODE_WIDTH 20
+#endif
+
 #define TEXT_MODE_HEIGHT 30
 #define TEXT_MODE_COUNT (TEXT_MODE_WIDTH * TEXT_MODE_HEIGHT)
 
@@ -224,7 +254,6 @@ void dma_handler() {
 // a DMA channel, we only need to modify the contents of the array and the
 // pixels will be automatically updated on the screen.
 void drawPixel(unsigned short x, unsigned short y, char color) {
-    // Range checks (320x240 display)
     if ((x < SCREEN_WIDTH - 1) && (x >= 0) && (y >= 0) && (y < SCREEN_HEIGHT - 1)) {
         int pixel = ((SCREEN_WIDTH * y) + x);
         vga_data_array[pixel] = color;

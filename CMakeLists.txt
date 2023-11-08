@@ -26,9 +26,16 @@ add_executable(${PROJECT_NAME}
 
 # by default the header is generated into the build dir
 # however, alternatively you can choose to generate it somewhere else (in this case in the source tree for check in)
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
-pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/rgb_320x240x64.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+# Build the 320x240x64 version.
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+# pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/320x240x64/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+
+# Build the 160x240x64 version.
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/hsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/vsync.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
+pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/pio/160x240x64/rgb.pio OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/pio)
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})
