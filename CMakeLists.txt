@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME}
         vga_graphics.c
         demo.c
         bit_helper.h
+        images/player.h
 )
 
 # by default the header is generated into the build dir

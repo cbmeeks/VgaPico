@@ -115,8 +115,9 @@ volatile int currentScanLine = 0;       // current processed scan line
  */
 #define TXCOUNT (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define DMATXCOUNT SCREEN_WIDTH
-unsigned char vga_data_array[TXCOUNT];
-volatile unsigned char *address_pointer_array = &vga_data_array[0];
+
+unsigned char vga_data_array[0];
+volatile unsigned char *vga_data_array_ptr = &vga_data_array[0];
 
 // The character buffer
 
@@ -210,6 +211,11 @@ unsigned char sprite_buffer[128][16 * 16] = {};
  * At the end of this method, we launch the DMA controller.
  */
 void initVGA() {
+    // Initialize buffers
+    vga_data_array_ptr = (unsigned char *) calloc(TXCOUNT, sizeof(unsigned char));
+
+    // TODO dynamically load the RGB PIO program into SM
+
     // Set PIO program offset
     uint hsync_offset = pio_add_program(pio, &hsync_program);
     uint vsync_offset = pio_add_program(pio, &vsync_program);
@@ -274,7 +280,7 @@ void initDma(uint rgb_sm) {
             RGB_CHAN_1,                         // Channel to be configured
             &c1,                                // The configuration we just created
             &dma_hw->ch[RGB_CHAN_0].read_addr,  // Write address (channel 0 read address)
-            &address_pointer_array,             // Read address (POINTER TO AN ADDRESS)
+            &vga_data_array_ptr,             // Read address (POINTER TO AN ADDRESS)
             1,                                  // Number of transfers, in this case each is 4 byte
             false                               // Don't start immediately.
     );
@@ -315,19 +321,19 @@ void dma_handler() {
     }
 
 #ifdef __VERTICAL__240__
-    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 1)];
+    vga_data_array_ptr = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 1)];
 #endif
 
 #ifdef __VERTICAL__120__
-    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 2)];
+    vga_data_array_ptr = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 2)];
 #endif
 
 #ifdef __VERTICAL__60__
-    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 3)];
+    vga_data_array_ptr = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 3)];
 #endif
 
 #ifdef __VERTICAL__30__
-    address_pointer_array = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 4)];
+    vga_data_array_ptr = &vga_data_array[DMATXCOUNT * ((currentScanLine + 0) >> 4)];
 #endif
 }
 

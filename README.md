@@ -45,6 +45,8 @@ https://www.youtube.com/watch?v=KCGy7Gz1QrE
 
 ![demo03.jpg](images%2Fdemo03.jpg)
 
+## Not completely working sprites (lol)
+![sprites.jpg](images%2Fsprites.jpg)
 
 ### Commodore PETSCII Font!!
 ![demo04.jpg](images%2Fdemo04.jpg)
