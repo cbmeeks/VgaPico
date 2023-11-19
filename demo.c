@@ -22,7 +22,7 @@ int main() {
     clearTextMode(32);
     clearFGColors(0b11111111);
     clearBGColors(0b11000100);
-
+//
 //    unsigned char c = 0;
 //    int color = 1;
 //    for (int y = 0; y < 15; y++) {
@@ -36,7 +36,6 @@ int main() {
 //        }
 //    }
 
-    drawTextMode();
 
     for (int y = 0; y < 16; y++) {
         for (int x = 0; x < 16; x++) {
@@ -44,6 +43,7 @@ int main() {
         }
     }
 
+    drawTextMode();
     while (1) {
 
         draw16x16Sprite(0, 40, 40);

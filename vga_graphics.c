@@ -116,7 +116,8 @@ volatile int currentScanLine = 0;       // current processed scan line
 #define TXCOUNT (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define DMATXCOUNT SCREEN_WIDTH
 
-unsigned char vga_data_array[0];
+// The pixel array
+unsigned char vga_data_array[TXCOUNT];
 volatile unsigned char *vga_data_array_ptr = &vga_data_array[0];
 
 // The character buffer
@@ -211,9 +212,6 @@ unsigned char sprite_buffer[128][16 * 16] = {};
  * At the end of this method, we launch the DMA controller.
  */
 void initVGA() {
-    // Initialize buffers
-    vga_data_array_ptr = (unsigned char *) calloc(TXCOUNT, sizeof(unsigned char));
-
     // TODO dynamically load the RGB PIO program into SM
 
     // Set PIO program offset
@@ -337,6 +335,12 @@ void dma_handler() {
 #endif
 }
 
+void clearScreen() {
+    for (int i = 0; i < TXCOUNT; i++) {
+        vga_data_array[i] = 0b00000000;
+    }
+}
+
 // A function for drawing a pixel with a specified color.
 // Note that because information is passed to the PIO state machines through
 // a DMA channel, we only need to modify the contents of the array and the
@@ -348,11 +352,6 @@ void drawPixel(unsigned short x, unsigned short y, char color) {
     }
 }
 
-void clearScreen() {
-    for (int i = 0; i < TXCOUNT; i++) {
-        vga_data_array[i] = 0;
-    }
-}
 
 void drawVLine(short x, short y, short h, char color) {
     for (short i = y; i < (y + h); i++) {
