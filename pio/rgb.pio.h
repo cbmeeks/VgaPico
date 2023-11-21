@@ -23,7 +23,7 @@ static const uint16_t rgb_program_instructions[] = {
     0xa022, //  3: mov    x, y                       
     0x23c1, //  4: wait   1 irq, 1               [3] 
     0x80a0, //  5: pull   block                      
-    0x7106, //  6: out    pins, 6                [17]
+    0x6706, //  6: out    pins, 6                [7] 
     0x0045, //  7: jmp    x--, 5                     
             //     .wrap
 };

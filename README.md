@@ -56,7 +56,7 @@ https://www.youtube.com/watch?v=KCGy7Gz1QrE
 Here is a good site to get different PETSCII fonts:
 http://www.6502.org/users/sjgray/computer/cbmchr/cbmchr.html
 
-Also, checkout the [petscii.py](petscii.py) file for a crud program to convert binary font data into a "petscii.h" include file.
+Also, checkout the [petscii.py](utils/petscii.py) file for a crud program to convert binary font data into a "petscii.h" include file.
 
 The main PETSCII file is called (chargen) and it can be found on the Web (also included in the petscii folder).
 

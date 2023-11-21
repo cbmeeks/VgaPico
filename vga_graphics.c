@@ -6,8 +6,8 @@
 // NOTE!  These defines must match whatever PIO you are compiling in your CMakeLists.txt file.
 // Horizontal values:   __HORIZONTAL_640__, __HORIZONTAL_320__, __HORIZONTAL_160__, __HORIZONTAL_80__, __HORIZONTAL_40__
 // Vertical values:     __VERTICAL__240__, __VERTICAL__120__, __VERTICAL__60__, __VERTICAL__30__
-#define __HORIZONTAL_160__
-#define __VERTICAL__120__
+#define __HORIZONTAL_320__
+#define __VERTICAL__240__
 
 
 // Pico hardware includes
@@ -24,6 +24,7 @@
 
 // Library includes
 #include "vga_graphics.h"
+#include "vga_base.h"
 #include "bit_helper.h"
 #include "fonts/petscii/petscii.h"
 
@@ -287,7 +288,7 @@ void initDma(uint rgb_sm) {
     dma_channel_set_irq0_enabled(RGB_CHAN_0, true);
 
     // set DMA IRQ handler
-    irq_set_exclusive_handler(DMA_IRQ_0, dma_handler);
+    irq_set_exclusive_handler(DMA_IRQ_0, dmaHandler);
     irq_set_enabled(DMA_IRQ_0, true);
 
     // set highest IRQ priority
@@ -301,13 +302,13 @@ void initDma(uint rgb_sm) {
 }
 
 /**
- *  DMA handler - called at the end of every scanline
+ *  DMA Handler - called at the end of every scanline
  *  This callback needs to be VERY brief.  Do not put complex logic in here.
  *  The main purpose is to keep track the current scanline and frame.
  *  Also, it updates the starting address (the SOURCE) of the first DMA channel.
  *  This allows us to use "double-pixel" lines to get 240 resolution out of a 640x480 VGA signal.
  */
-void dma_handler() {
+void dmaHandler() {
     // Clear the interrupt request for DMA control channel
     dma_hw->ints0 = (1u << RGB_CHAN_0);
 
@@ -335,16 +336,28 @@ void dma_handler() {
 #endif
 }
 
+
+/**
+ * Clears the screen down to the pixel level.
+ * Defaults to 0b00000000
+ */
 void clearScreen() {
     for (int i = 0; i < TXCOUNT; i++) {
         vga_data_array[i] = 0b00000000;
     }
 }
 
-// A function for drawing a pixel with a specified color.
-// Note that because information is passed to the PIO state machines through
-// a DMA channel, we only need to modify the contents of the array and the
-// pixels will be automatically updated on the screen.
+/**
+ * A function for drawing a pixel with a specified color.
+ * Note that because information is passed to the PIO state machines through a DMA channel,
+ * we only need to modify the contents of the array and the pixels will be automatically updated on the screen.
+ *
+ * TODO check bounds checking (especially right side!)
+ *
+ * @param x X pixel location
+ * @param y Y pixel location
+ * @param color color to draw
+ */
 void drawPixel(unsigned short x, unsigned short y, char color) {
     if ((x < SCREEN_WIDTH - 1) && (x >= 0) && (y >= 0) && (y < SCREEN_HEIGHT - 1)) {
         int pixel = ((SCREEN_WIDTH * y) + x);
@@ -377,7 +390,7 @@ void drawLine(short x0, short y0, short x1, short y1, char color) {
                the top-left of the screen is 0. It increases to the right.
            y1: y-coordinate of ending point of line. The y-coordinate of
                the top-left of the screen is 0. It increases to the bottom.
-           color: 3-bit color value for line
+           color: 6-bit color value for line
     */
     short steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep) {
@@ -565,7 +578,6 @@ void fillCircleHelper(short x0, short y0, short r, unsigned char cornername, sho
     }
 }
 
-// fill a rectangle
 void fillRect(short x, short y, short w, short h, char color) {
     /* Draw a filled rectangle with starting top-left vertex (x,y),
        width w and height h with given color
@@ -603,11 +615,18 @@ void draw16x16Sprite(unsigned char spriteNumber, int x, int y) {
 
 
 /**
- * Draw an 8x8 character using the PETSCII font to the screen at 40x30 characters
+ * Draw an 8x8 character using the PETSCII font to the screen at 40x30 characters.
+ * Note, that if the MSB of the color is set, the FG and BG colors will be flipped (inverse character).
+ * For example, if you set the FG color to BLUE and the BG color to BLACK, then you will see a blue character on a black
+ * background.  However, if you do the exact same thing but set bit 7, then you will see a BLACK character on a BLUE
+ * background.
+ *
+ * Setting the MSB of the BG color has no effect.
+ *
  * @param colx Screen column X
  * @param coly Screen column Y
  * @param charidx Character index from PETSCII font buffer
- * @param fgcolor Foreground color
+ * @param fgcolor Foreground color (0bIxRRGGBB: I = inverse, RR = red, GG = green, BB = blue)
  * @param bgcolor Background color
  */
 void draw8x8Char(unsigned short colx,
@@ -615,15 +634,34 @@ void draw8x8Char(unsigned short colx,
                  unsigned short charidx,
                  unsigned char fgcolor,
                  unsigned char bgcolor) {
-    for (int y = 0; y < 8; y++) {
-        unsigned char line = petscii[charidx][y];
 
-        // get the starting x/y pixel location
-        unsigned short scrx = colx * 8;
-        unsigned short scry = coly * 8;
+    // get the starting x/y pixel location
+    unsigned short scrx = (colx << 3);
+    unsigned short scry = (coly << 3);
 
-        for (int x = 0; x < 8; x++) {
-            drawPixel(scrx + x, scry + y, BitVal(line, (7 - x)) == 0x01 ? fgcolor : bgcolor);
+    if (CHECK_BIT(fgcolor, 7)) {
+        for (int y = 0; y < 8; y++) {
+            unsigned char line = petscii[charidx][y];
+            drawPixel(scrx + 0, scry + y, CHECK_BIT(line, (7 - 0)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 1, scry + y, CHECK_BIT(line, (7 - 1)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 2, scry + y, CHECK_BIT(line, (7 - 2)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 3, scry + y, CHECK_BIT(line, (7 - 3)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 4, scry + y, CHECK_BIT(line, (7 - 4)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 5, scry + y, CHECK_BIT(line, (7 - 5)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 6, scry + y, CHECK_BIT(line, (7 - 6)) ? bgcolor : fgcolor);
+            drawPixel(scrx + 7, scry + y, CHECK_BIT(line, (7 - 7)) ? bgcolor : fgcolor);
+        }
+    } else {
+        for (int y = 0; y < 8; y++) {
+            unsigned char line = petscii[charidx][y];
+            drawPixel(scrx + 0, scry + y, CHECK_BIT(line, (7 - 0)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 1, scry + y, CHECK_BIT(line, (7 - 1)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 2, scry + y, CHECK_BIT(line, (7 - 2)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 3, scry + y, CHECK_BIT(line, (7 - 3)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 4, scry + y, CHECK_BIT(line, (7 - 4)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 5, scry + y, CHECK_BIT(line, (7 - 5)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 6, scry + y, CHECK_BIT(line, (7 - 6)) ? fgcolor : bgcolor);
+            drawPixel(scrx + 7, scry + y, CHECK_BIT(line, (7 - 7)) ? fgcolor : bgcolor);
         }
     }
 }
@@ -659,7 +697,7 @@ void drawTextMode() {
 void drawCharacterAt(unsigned short colx, unsigned short coly, unsigned short charidx) {
     if (colx < 0 || colx >= TEXT_MODE_WIDTH) return;
     if (coly < 0 || coly >= TEXT_MODE_HEIGHT) return;
-    if (charidx < 0 || charidx >= 256) return;
+    if (charidx < 0 || charidx > 255) return;
     text_buffer[(coly * TEXT_MODE_WIDTH) + colx] = charidx;
 }
 
@@ -732,6 +770,7 @@ void _text_write(unsigned char c) {
         drawCharacterAt(cursor_x, cursor_y, c);
         cursor_x++;
         // TODO handle wrapping screen
+        // hint: reset cursor_x to 0 and use screen shift up if cursor_x > max x/y cursor position (bottom right)
     }
 }
 
@@ -758,7 +797,7 @@ void clearBGColors(unsigned char color) {
 
 
 /**
- * Sets the foreground color at a specified screen location (in 40x30 cells)
+ * Sets the foreground color at a specified screen location (in 8x8 pixel cells)
  * @param colx screen x column
  * @param coly screen y column
  * @param color color
@@ -771,7 +810,7 @@ void setFGColor(unsigned short colx, unsigned short coly, unsigned char color) {
 
 
 /**
- * Sets the background color at a specified screen location (in 40x30 cells)
+ * Sets the background color at a specified screen location (in 8x8 pixel cells)
  * @param colx screen x column
  * @param coly screen y column
  * @param color color
@@ -818,71 +857,7 @@ void setFontBuffer(unsigned short charIndex, unsigned char charDataIndex, unsign
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////
-// OLD, original code
-// While I have learned a lot from this code, I will be removing it eventually as I
-// "model" this library for my own needs.  :-)
-///////////////////////////////////////////////////////////////////////////////////////
-//
-//// Draw a character
-//void drawChar(short x, short y, unsigned char c, char color, char bg, unsigned char size) {
-//    char i, j;
-//    if ((x >= SCREEN_WIDTH) ||          // Clip right
-//        (y >= SCREEN_HEIGHT) ||         // Clip bottom
-//        ((x + 8 * size - 1) < 0) ||     // Clip left
-//        ((y + 8 * size - 1) < 0))       // Clip top
-//        return;
-//
-//    // this is set for 5x7 fonts. TODO create a true 8x8 version
-//    for (i = 0; i < 6; i++) {
-//        unsigned char line;
-//        if (i == 5)
-//            line = 0x0;
-//        else
-//            line = pgm_read_byte(font + (c * 5) + i);
-//        for (j = 0; j < 8; j++) {
-//            if (line & 0x1) {
-//                if (size == 1)  // default size
-//                    drawPixel(x + i, y + j, color);
-//                else {  // big size
-//                    fillRect(x + (i * size), y + (j * size), size, size, color);
-//                }
-//            } else if (bg != color) {
-//                if (size == 1)  // default size
-//                    drawPixel(x + i, y + j, bg);
-//                else {  // big size
-//                    fillRect(x + i * size, y + j * size, size, size, bg);
-//                }
-//            }
-//            line >>= 1;
-//        }
-//    }
-//}
-
-void setTextSize(unsigned char s) {
-    /*Set size of text to be displayed
-      Parameters:
-           s = text size (1 being smallest)
-      Returns: nothing
-    */
-    textsize = (s > 0) ? s : 1;
-}
-
-void setTextColor(char c) {
-    // For 'transparent' background, we'll set the bg
-    // to the same as fg instead of using a flag
-    textcolor = textbgcolor = c;
-}
-
-void setFgBgTextColor(char fg, char bg) {
-    textcolor = fg;
-    textbgcolor = bg;
-}
-
-void setTextWrap(char w) {
-    wrap = w;
-}
-
+// OLD - Remove me
 void tft_write(unsigned char c) {
     if (c == '\n') {
         cursor_y += textsize * 8;
@@ -901,14 +876,5 @@ void tft_write(unsigned char c) {
             cursor_y += textsize * 8;
             cursor_x = 0;
         }
-    }
-}
-
-void writeString(char *str) {
-    /* Print text onto screen
-      Call setTextCursor(), setTextColor(), setTextSize() as necessary before printing
-    */
-    while (*str) {
-        tft_write(*str++);
     }
 }

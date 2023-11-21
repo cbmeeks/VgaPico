@@ -30,7 +30,7 @@ class Petscii:
                 out.append(self.byte_arr[y * 8 + x] + ",")
             out.append("},")
 
-        with open("fonts/petscii/petscii.h", "w") as f:
+        with open("../fonts/petscii/petscii.h", "w") as f:
             f.write("%s\n" % "#ifndef PETSCII_H")
             f.write("%s\n\n" % "#define PETSCII_H")
             f.write("%s\n\n" % "// THIS FILE IS GENERATED WITH THE petscii.py PROGRAM!");
