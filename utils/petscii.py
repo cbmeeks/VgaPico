@@ -1,11 +1,13 @@
+# Font references:   http://www.6502.org/users/sjgray/computer/cbmchr/cbmchr.html
+
 import sys
 
 # Standard Commodore PETSCII
-# fontname = "chargen"
+fontname = "chargen"
 
 
 # Non-Commodore PETSCII
-fontname = "901447-10m.bin"
+# fontname = "901447-10m.bin"
 
 class Petscii:
     def __init__(self):

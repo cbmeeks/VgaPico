@@ -22,16 +22,14 @@ int main() {
     clearBGColors(BLUE);
 
 
-    for (int i = 0; i < 255; i++) {
-        drawCharacter(i, WHITE, BLUE);
-    }
+//    for (int i = 0; i < 255; i++) {
+//        drawCharacter(i, WHITE, BLUE);
+//    }
 
-    drawCharacterString("\n\n\nXQ\r\rB-");
-
+    drawCharacterString("CB MEEKS WAS HERE!");
 
     while (true) {
         drawTextMode();
-        drawCharacterString("\rWzXX");
 //        toggleCursor();
 
 

@@ -780,8 +780,8 @@ void toggleCursor() {
  */
 void drawCharacterString(char *str) {
     while (*str) {
-        _text_write(*str++);
-//        _text_write(ascii2petscii[((*str++) & 0x7f)]);
+//        _text_write(*str++);
+        _text_write(ascii2petscii[((*str++) & 0b00111111)]);
     }
 }
 
