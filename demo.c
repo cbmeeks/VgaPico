@@ -12,6 +12,7 @@
 #include "pico/stdlib.h"
 #include "vga_graphics.h"
 
+
 int main() {
     initVGA();
     clearScreen();
@@ -20,14 +21,19 @@ int main() {
     clearFGColors(WHITE);
     clearBGColors(BLUE);
 
-    setFGColor(0, 0, 0b10111100);
-    drawCharacterString("XXXXXXXX");
 
-    setTextCursor(0, 27);
+    for (int i = 0; i < 255; i++) {
+        drawCharacter(i, WHITE, BLUE);
+    }
+
+    drawCharacterString("\n\n\nXQ\r\rB-");
+
 
     while (true) {
         drawTextMode();
-        toggleCursor();
+        drawCharacterString("\rWzXX");
+//        toggleCursor();
+
 
 //        shiftCharactersUp();
 

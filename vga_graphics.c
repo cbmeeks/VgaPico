@@ -187,9 +187,8 @@ bool cursor_shown = true;   // whether this cursor image is current visible or t
 #define tabspace 4  // number of spaces for a tab
 
 // Default colors
-unsigned char cursor_color = 0b11111000;
-unsigned char foreground_color = 0b11111000;
-unsigned char background_color = 0b11000011;
+unsigned char foreground_color = WHITE;
+unsigned char background_color = BLUE;
 
 
 //////////////////////////////////////////////////////////////////////
@@ -689,7 +688,33 @@ void drawTextMode() {
 }
 
 /**
+ * Draws a single PETSCII character at the current cursor position.
+ * NOTE: This draws to the text buffer and the relative color buffers and not pixels directly.
+ * NOTE: Cursor will advance down the screen but at the moment, the screen contents do not scroll up.
+ * TODO add feature to scroll screen up when reaching the bottom-right
+ * @param charidx character index from font buffer
+ * @param fgcolor foreground color of character
+ * @param bgcolor background color of character
+ */
+void drawCharacter(unsigned short charidx, unsigned char fgcolor, unsigned char bgcolor) {
+    if (charidx < 0 || charidx > 255) return;
+
+    text_buffer[(cursor_y * TEXT_MODE_WIDTH) + cursor_x] = charidx;
+    text_fg_color_buffer[(cursor_y * TEXT_MODE_WIDTH) + cursor_x] = fgcolor;
+    text_bg_color_buffer[(cursor_y * TEXT_MODE_WIDTH) + cursor_x] = bgcolor;
+
+    cursor_x++;
+    if (cursor_x >= TEXT_MODE_WIDTH) {
+        cursor_x = 0;
+        cursor_y++;
+        if (cursor_y >= TEXT_MODE_HEIGHT) cursor_y = 0;
+    }
+}
+
+
+/**
  * Draws a single PETSCII character (from PETSCII font buffer) to the screen buffer
+ * NOTE: This draws to the text buffer and not pixels directly.
  * @param colx Screen column X
  * @param coly Screen column Y
  * @param charidx Character index from within font buffer
@@ -714,7 +739,7 @@ void clearTextMode(unsigned short charidx) {
 
 
 /**
- * Updates the screen cursor position based on character cells (40x30)
+ * Updates the screen cursor position based on character cells
  * @param x screen x column
  * @param y screen y row
  */
@@ -756,19 +781,41 @@ void toggleCursor() {
 void drawCharacterString(char *str) {
     while (*str) {
         _text_write(*str++);
+//        _text_write(ascii2petscii[((*str++) & 0x7f)]);
     }
 }
 
 void _text_write(unsigned char c) {
+
     if (c == '\n') {
-
+        // newline pushes cursor down but not to the left
+        cursor_y++;
+        if (cursor_y >= TEXT_MODE_HEIGHT) {
+            cursor_y = TEXT_MODE_HEIGHT - 1;
+            shiftCharactersUp();
+        }
     } else if (c == '\r') {
-
+        // carriage return pushes cursor down and to the left 0 position
+        cursor_x = 0;
+        cursor_y++;
+        if (cursor_y >= TEXT_MODE_HEIGHT) {
+            cursor_y = TEXT_MODE_HEIGHT - 1;
+            shiftCharactersUp();
+        }
     } else if (c == '\t') {
 
     } else {
         drawCharacterAt(cursor_x, cursor_y, c);
         cursor_x++;
+        if (cursor_x >= TEXT_MODE_WIDTH) {
+            cursor_x = 0;
+            cursor_y++;
+
+            if (cursor_y >= TEXT_MODE_HEIGHT) {
+                shiftCharactersUp();
+                cursor_y = TEXT_MODE_HEIGHT - 1;
+            }
+        }
         // TODO handle wrapping screen
         // hint: reset cursor_x to 0 and use screen shift up if cursor_x > max x/y cursor position (bottom right)
     }
