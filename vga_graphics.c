@@ -13,7 +13,6 @@
 // Pico hardware includes
 #include <stdlib.h>
 #include <pico/stdio.h>
-#include <pico/printf.h>
 #include "hardware/pio.h"
 #include "hardware/dma.h"
 
@@ -27,6 +26,7 @@
 #include "vga_base.h"
 #include "bit_helper.h"
 #include "fonts/petscii/petscii.h"
+#include "sprite.h"
 
 // VGA defines
 #define H_ACTIVE   655    // (active + front porch - 1) - cycle delay for MOV
@@ -241,6 +241,9 @@ void initVGA() {
 
     // Initialize and start DMA
     initDma(rgb_sm);
+
+    // Initial the sprite system
+    initSprites();
 }
 
 /**
@@ -366,13 +369,13 @@ void drawPixel(unsigned short x, unsigned short y, char color) {
 
 
 void drawVLine(short x, short y, short h, char color) {
-    for (short i = y; i < (y + h); i++) {
+    for (short i = y; i < y + h; i++) {
         drawPixel(x, i, color);
     }
 }
 
 void drawHLine(short x, short y, short w, char color) {
-    for (short i = x; i < (x + w); i++) {
+    for (short i = x; i < x + w; i++) {
         drawPixel(i, y, color);
     }
 }

@@ -19,12 +19,25 @@ pico_sdk_init()
 
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
+        sprite.c
         vga_graphics.c
+        vga_base.h
+
         demo.c
         bit_helper.h
+
+        sprite.h
+
         images/player.h
         images/rock.h
-        vga_base.h
+        images/grinch.h
+        images/metroid.h
+        images/grinch2.h
+        images/grinch3.h
+        images/robocop.h
+        images/tree1.h
+        images/tree2.h
+        images/sb.h
 )
 
 # by default the header is generated into the build dir
